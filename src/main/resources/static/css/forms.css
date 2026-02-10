@@ -1,0 +1,78 @@
+/* ====================================
+   Forms & Input Controls
+   ==================================== */
+
+/* General inputs */
+input[type="text"],
+input[type="password"],
+select {
+    padding: 7px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+input:invalid {
+    border-color: #dc3545;
+}
+
+input.error {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+}
+
+input.success {
+    border-color: #28a745;
+    background-color: #f0fff4;
+}
+
+/* All password forms - vertical stack */
+.password-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.password-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    height: 36px;
+    min-height: 36px;
+    line-height: 1.4;
+}
+
+.btn-small {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Specific form IDs also get full width */
+#current-login-password,
+#new-login-password,
+#serial-number,
+#timezone-select {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Make sure forms don't overflow */
+form {
+    max-width: 100%;
+    overflow: visible;
+}

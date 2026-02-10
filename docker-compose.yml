@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  config-ui:
+    build: .
+    container_name: guardian-hub-config-ui
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      - PORT=8888
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

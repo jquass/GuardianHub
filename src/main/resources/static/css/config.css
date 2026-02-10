@@ -1,0 +1,96 @@
+/* ====================================
+   Config Sections & Items
+   ==================================== */
+
+.config-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 16px;
+    overflow: visible !important;
+    max-width: 100%; /* Force to stay within container */
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.category-title {
+    color: #667eea;
+    font-size: 1.3em;
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #667eea;
+    max-width: 100%; /* Force to stay within */
+    word-break: break-word; /* Allow breaking */
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    max-width: 100%; /* Force to stay within */
+}
+
+.config-grid.two-column {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.config-item {
+    background: white;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    min-width: 0; /* Allow shrinking below content size */
+    max-width: 100%; /* Force to stay within */
+    overflow: visible !important;
+    position: relative;
+}
+
+.config-item.password-item {
+    border-left: 3px solid #e74c3c;
+}
+
+.config-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    overflow: visible !important;
+    position: relative;
+    max-width: 100%; /* Force to stay within */
+}
+
+.config-key {
+    display: none;
+}
+
+.config-description {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    max-width: 100%; /* Force to stay within */
+    word-break: break-word; /* Allow breaking long words */
+}
+
+.config-label .config-description {
+    font-weight: 500;
+    color: #333;
+}
+
+.config-value {
+    font-family: 'Courier New', monospace;
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    word-break: break-all; /* Break long values */
+    overflow-wrap: break-word;
+    font-size: 0.9em;
+    max-width: 100%; /* Force to stay within */
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian Hub - Login</title>
+    <link rel="stylesheet" href="/login-styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-header">
+        <h1>🛡️ Guardian Hub</h1>
+        <p>Enter password to access configuration</p>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" class="login-form">
+        <div id="login-error" class="error-message" style="display: none;"></div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    autofocus
+                    autocomplete="current-password"
+            >
+        </div>
+
+        <button type="submit" class="btn-login">Login</button>
+
+        <div class="forgot-password">
+            <a href="#" id="show-reset">Forgot password? Reset with factory password</a>
+        </div>
+    </form>
+
+    <!-- Reset Form -->
+    <form id="reset-form" class="reset-form">
+        <div id="reset-message" style="display: none;"></div>
+
+        <div class="form-group">
+            <label for="factory-password">Factory Password</label>
+            <input
+                    type="text"
+                    id="factory-password"
+                    name="factory-password"
+                    required
+                    placeholder="XXXX-XXXX-XXXX-XXXX"
+                    pattern="[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}"
+            >
+            <div class="hint">Factory password is printed on device label</div>
+        </div>
+
+        <div class="form-group">
+            <label for="serial-number">Serial Number</label>
+            <input
+                    type="text"
+                    id="serial-number"
+                    name="serial-number"
+                    required
+                    placeholder="YYYYMMDD-XXXXXX"
+                    pattern="[0-9]{8}-[A-F0-9]{6}"
+            >
+            <div class="hint">Serial number is printed on device label</div>
+        </div>
+
+        <button type="submit" class="btn-login">Reset Password</button>
+
+        <div class="back-to-login">
+            <a href="#" id="back-to-login">Back to login</a>
+        </div>
+    </form>
+</div>
+
+<script src="/login.js"></script>
+</body>
+</html>

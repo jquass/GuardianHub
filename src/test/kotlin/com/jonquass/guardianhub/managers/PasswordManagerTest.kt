@@ -183,8 +183,8 @@ class PasswordManagerTest {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
         every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
             listOf(
-                Pair(0, """{"token":"abc123"}"""), // token fetch succeeds
-                Pair(1, null), // user id fetch fails
+                Pair(0, """{"token":"abc123"}"""),
+                Pair(1, null),
             )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
@@ -199,9 +199,9 @@ class PasswordManagerTest {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
         every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
             listOf(
-                Pair(0, """{"token":"abc123"}"""), // token fetch
-                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""), // user id fetch
-                Pair(0, "false"), // password update
+                Pair(0, """{"token":"abc123"}"""),
+                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),
+                Pair(0, "false"),
             )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
@@ -216,9 +216,9 @@ class PasswordManagerTest {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
         every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
             listOf(
-                Pair(0, """{"token":"abc123"}"""), // token fetch
-                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""), // user id fetch
-                Pair(0, "true"), // password update
+                Pair(0, """{"token":"abc123"}"""),
+                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),
+                Pair(0, "true"),
             )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))

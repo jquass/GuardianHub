@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.resources
 
 import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
+import com.jonquass.guardianhub.core.manager.toResponse
 import com.jonquass.guardianhub.managers.PasswordManager
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.POST
@@ -15,17 +16,17 @@ class PasswordResource {
     @Path("/pihole")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun updatePiholePassword(request: UpdatePasswordRequest): Response = PasswordManager.updatePiholePassword(request)
+    fun updatePiholePassword(request: UpdatePasswordRequest): Response = PasswordManager.updatePiholePassword(request).toResponse()
 
     @POST
     @Path("/wireguard")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun updateWireGuardPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateWireGuardPassword(request)
+    fun updateWireGuardPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateWireGuardPassword(request).toResponse()
 
     @POST
     @Path("/npm")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun updateNpmPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateNpmPassword(request)
+    fun updateNpmPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateNpmPassword(request).toResponse()
 }

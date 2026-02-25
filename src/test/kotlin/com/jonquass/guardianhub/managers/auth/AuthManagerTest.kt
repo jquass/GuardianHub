@@ -3,9 +3,13 @@ package com.jonquass.guardianhub.managers.auth
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.manager.errOrThrow
 import com.jonquass.guardianhub.core.manager.getOrThrow
 import com.jonquass.guardianhub.managers.ConfigManager
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import jakarta.ws.rs.core.Response
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.MapEntry.entry
@@ -15,6 +19,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 import java.io.File
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -56,6 +61,7 @@ class AuthManagerTest {
         AuthManager.factoryPasswordFile = File(AuthManager.DEFAULT_FACTORY_PASSWORD_PATH)
         AuthManager.serialNumberFile = File(AuthManager.DEFAULT_SERIAL_NUMBER_PATH)
         SessionManager.invalidateSessions()
+        unmockkAll()
     }
 
     @Test
@@ -308,5 +314,39 @@ class AuthManagerTest {
             )
 
         assertTrue(result.isError)
+    }
+
+    @Test
+    fun `resetToFactory should fail when bcrypt fails`() {
+        mockkObject(ConfigManager)
+        every { ConfigManager.upsertConfig(any<Env>(), any<String>()) } throws RuntimeException("Simulated failure")
+
+        val exception =
+            assertThrows<RuntimeException> {
+                AuthManager.resetToFactory(
+                    ResetToFactoryRequest(password, serialNumber),
+                )
+            }
+
+        assertThat("Simulated failure").isEqualTo(exception.message)
+    }
+
+    @Test
+    fun `changePassword should fail when ConfigManager fails`() {
+        val loginResult = AuthManager.login(LoginRequest(password))
+        assertTrue(loginResult.isSuccess)
+        val token = loginResult.getOrThrow().token
+        mockkObject(ConfigManager)
+        every { ConfigManager.upsertConfig(any<Env>(), any<String>()) } throws RuntimeException("Simulated failure")
+
+        val exception =
+            assertThrows<RuntimeException> {
+                AuthManager.changePassword(
+                    "Bearer $token",
+                    ChangePasswordRequest(password, "NewPassword123", serialNumber),
+                )
+            }
+
+        assertThat("Simulated failure").isEqualTo(exception.message)
     }
 }

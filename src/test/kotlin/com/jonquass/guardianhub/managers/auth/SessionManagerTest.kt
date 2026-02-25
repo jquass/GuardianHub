@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SessionManagerTest {
@@ -18,6 +20,14 @@ class SessionManagerTest {
     @AfterEach
     fun cleanup() {
         SessionManager.invalidateSessions()
+    }
+
+    private fun insertExpiredSession(token: String) {
+        val sessionsField = SessionManager::class.java.getDeclaredField("sessions")
+        sessionsField.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val sessions = sessionsField.get(SessionManager) as ConcurrentHashMap<String, Long>
+        sessions[token] = System.currentTimeMillis() - 1000L // already expired
     }
 
     @Test
@@ -79,5 +89,15 @@ class SessionManagerTest {
 
         assertFalse(SessionManager.isValidSession(token1))
         assertFalse(SessionManager.isValidSession(token2))
+    }
+
+    @Test
+    fun `isValidSession should return false and remove token when session is expired`() {
+        val token = UUID.randomUUID().toString()
+        insertExpiredSession(token)
+
+        val result = SessionManager.isValidSession(token)
+
+        assertFalse(result)
     }
 }

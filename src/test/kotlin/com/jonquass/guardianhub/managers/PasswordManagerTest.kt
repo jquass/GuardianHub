@@ -181,10 +181,11 @@ class PasswordManagerTest {
     fun `updateNpmPassword should return error when user id fetch fails`() {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
-        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany listOf(
-            Pair(0, """{"token":"abc123"}"""),  // token fetch succeeds
-            Pair(1, null),                      // user id fetch fails
-        )
+        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
+            listOf(
+                Pair(0, """{"token":"abc123"}"""), // token fetch succeeds
+                Pair(1, null), // user id fetch fails
+            )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -196,11 +197,12 @@ class PasswordManagerTest {
     fun `updateNpmPassword should return error when password update api returns false`() {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
-        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany listOf(
-            Pair(0, """{"token":"abc123"}"""),                               // token fetch
-            Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),          // user id fetch
-            Pair(0, "false"),                                                // password update
-        )
+        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
+            listOf(
+                Pair(0, """{"token":"abc123"}"""), // token fetch
+                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""), // user id fetch
+                Pair(0, "false"), // password update
+            )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -212,11 +214,12 @@ class PasswordManagerTest {
     fun `updateNpmPassword should return success when all steps succeed`() {
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
         every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
-        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany listOf(
-            Pair(0, """{"token":"abc123"}"""),                               // token fetch
-            Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),          // user id fetch
-            Pair(0, "true"),                                                 // password update
-        )
+        every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
+            listOf(
+                Pair(0, """{"token":"abc123"}"""), // token fetch
+                Pair(0, """[{"id":1,"email":"admin@example.com"}]"""), // user id fetch
+                Pair(0, "true"), // password update
+            )
 
         val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 

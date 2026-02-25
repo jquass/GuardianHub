@@ -12,7 +12,6 @@ import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ServiceStatusManagerTest {
-
     @BeforeEach
     fun setUp() {
         mockkObject(DockerManager)
@@ -124,7 +123,10 @@ class ServiceStatusManagerTest {
         assertThat(status!!.servicesRestarted).containsExactly("pihole")
     }
 
-    private fun await(taskId: String, timeoutMs: Long = 3000) {
+    private fun await(
+        taskId: String,
+        timeoutMs: Long = 3000,
+    ) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             val status = ServiceStatusManager.getTaskStatus(taskId)

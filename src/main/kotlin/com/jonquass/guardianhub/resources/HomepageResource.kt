@@ -34,8 +34,7 @@ class HomepageResource : Loggable {
                 if (useDns) {
                     dnsUrl
                 } else {
-                    // Fallback to IP
-                    val ip = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP) ?: "localhost"
+                    val ip = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP) ?: "127.0.0.1"
                     "http://$ip:3001"
                 }
 

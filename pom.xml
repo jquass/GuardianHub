@@ -14,7 +14,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.9.22</kotlin.version>
+        <kotlin.version>2.3.0</kotlin.version>
         <kotlin.code.style>official</kotlin.code.style>
         <jersey.version>3.1.5</jersey.version>
         <grizzly.version>4.0.2</grizzly.version>
@@ -66,13 +66,6 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
             <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.16</version>
         </dependency>
 
         <!-- Logback (SLF4J implementation) -->
@@ -128,7 +121,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.24.2</version>
+            <version>3.27.7</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

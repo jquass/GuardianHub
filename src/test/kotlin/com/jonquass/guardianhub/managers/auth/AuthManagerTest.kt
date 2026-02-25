@@ -268,18 +268,20 @@ class AuthManagerTest {
 
     @Test
     fun `resetToFactory should fail with incorrect factory password`() {
-        val result = AuthManager.resetToFactory(
-            ResetToFactoryRequest("WrongFactoryPassword", serialNumber)
-        )
+        val result =
+            AuthManager.resetToFactory(
+                ResetToFactoryRequest("WrongFactoryPassword", serialNumber),
+            )
 
         assertTrue(result.isError)
     }
 
     @Test
     fun `resetToFactory should fail with incorrect serial number`() {
-        val result = AuthManager.resetToFactory(
-            ResetToFactoryRequest(password, "WrongSerial")
-        )
+        val result =
+            AuthManager.resetToFactory(
+                ResetToFactoryRequest(password, "WrongSerial"),
+            )
 
         assertTrue(result.isError)
     }
@@ -288,9 +290,10 @@ class AuthManagerTest {
     fun `resetToFactory should fail when factory password file does not exist`() {
         factoryPasswordFile.delete()
 
-        val result = AuthManager.resetToFactory(
-            ResetToFactoryRequest(password, serialNumber)
-        )
+        val result =
+            AuthManager.resetToFactory(
+                ResetToFactoryRequest(password, serialNumber),
+            )
 
         assertTrue(result.isError)
     }
@@ -299,9 +302,10 @@ class AuthManagerTest {
     fun `resetToFactory should fail when serial number file does not exist`() {
         serialNumberFile.delete()
 
-        val result = AuthManager.resetToFactory(
-            ResetToFactoryRequest(password, serialNumber)
-        )
+        val result =
+            AuthManager.resetToFactory(
+                ResetToFactoryRequest(password, serialNumber),
+            )
 
         assertTrue(result.isError)
     }

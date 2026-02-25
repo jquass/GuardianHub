@@ -1,7 +1,6 @@
 package com.jonquass.guardianhub.managers
 
 import com.jonquass.guardianhub.config.Loggable
-import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -81,32 +80,15 @@ object ServiceStatusManager : Loggable {
                     servicesRestarted = successfulRestarts.toList(),
                     servicesFailed = failedRestarts.toList(),
                 )
-
-            try {
-                val process =
-                    ProcessBuilder(
-                        "/usr/bin/docker",
-                        "compose",
-                        "up",
-                        "-d",
-                        "--force-recreate",
-                        "--no-deps",
-                        service,
-                    ).directory(File("/opt/pi-stack")).start()
-
-                val exitCode = process.waitFor()
-
-                if (exitCode == 0) {
-                    logger.info("Successfully restarted: {}", service)
-                    successfulRestarts.add(service)
-                } else {
-                    logger.error("Failed to restart {}: exit code {}", service, exitCode)
-                    failedRestarts.add(service)
-                }
-            } catch (e: Exception) {
-                logger.error("Failed to restart {}: {}", service, e.message, e)
-                failedRestarts.add(service)
-            }
+            DockerManager.exec(
+                "/usr/bin/docker",
+                "compose",
+                "up",
+                "-d",
+                "--force-recreate",
+                "--no-deps",
+                service,
+            )
         }
 
         // Final status

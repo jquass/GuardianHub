@@ -6,18 +6,20 @@ import com.jonquass.guardianhub.core.config.CategoryInfo
 import com.jonquass.guardianhub.core.config.ConfigEntry
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.config.EnvCategory
-import jakarta.ws.rs.core.Response
+import com.jonquass.guardianhub.core.manager.Result
 import java.io.File
 
 object ConfigManager : Loggable {
     private val logger = logger()
 
-    private val configFile = File("/opt/pi-stack/.env")
+    internal const val SENSITIVE_MASK = "••••••••"
+    internal const val DEFAULT_CONFIG_PATH = "/opt/pi-stack/.env"
+    internal var configFile = File(DEFAULT_CONFIG_PATH)
 
     /**
      * Used for the UI, masks sensitive fields
      */
-    fun readConfig(): Response {
+    fun readConfig(): Result<ConfigResponse> {
         return try {
             val entries = mutableListOf<ConfigEntry>()
 
@@ -30,25 +32,19 @@ object ConfigManager : Loggable {
                 val parts = trimmed.split("=", limit = 2)
                 if (parts.size == 2) {
                     val keyName = parts[0].trim()
-                    var value = parts[1].trim()
-
-                    // Remove surrounding quotes if present
-                    if ((value.startsWith("'") && value.endsWith("'")) ||
-                        (value.startsWith("\"") && value.endsWith("\""))
-                    ) {
-                        value = value.substring(1, value.length - 1)
-                    }
+                    val value = getValue(parts[1])
 
                     // Find matching enum
                     val env = Env.entries.find { it.name == keyName } ?: Env.UNKNOWN
 
                     // Skip UNKNOWN entries
                     if (env == Env.UNKNOWN) {
+                        logger.debug("Unknown env value {}", keyName)
                         return@forEach
                     }
 
                     // Mask sensitive values
-                    val displayValue = if (env.sensitive) "••••••••" else value
+                    val displayValue = if (env.sensitive) SENSITIVE_MASK else value
 
                     entries.add(
                         ConfigEntry(
@@ -82,24 +78,10 @@ object ConfigManager : Loggable {
                     categories = categoriesWithEntries,
                     entries = entries,
                 )
-
-            Response
-                .ok(
-                    mapOf(
-                        "status" to "success",
-                        "config" to configResponse,
-                    ),
-                ).build()
+            Result.Success(configResponse)
         } catch (e: Exception) {
             logger.error("Failed to read config: {}", e.message, e)
-            Response
-                .status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(
-                    mapOf(
-                        "status" to "error",
-                        "message" to "Failed to read config: ${e.message}",
-                    ),
-                ).build()
+            Result.Error("Failed to read config: ${e.message}")
         }
     }
 
@@ -111,7 +93,6 @@ object ConfigManager : Loggable {
         value: String,
     ) {
         validateConfig()
-        logger.trace("Updating .env file for key {}", key)
         val lines = configFile.readLines().toMutableList()
         var updated = false
         val escapedValue =
@@ -148,24 +129,29 @@ object ConfigManager : Loggable {
 
             val parts = trimmed.split("=", limit = 2)
             if (parts.size == 2 && parts[0].trim() == key.name) {
-                var value = parts[1].trim()
-
-                // Remove surrounding quotes if present (handles bcrypt hashes)
-                if ((value.startsWith("'") && value.endsWith("'")) ||
-                    (value.startsWith("\"") && value.endsWith("\""))
-                ) {
-                    value = value.substring(1, value.length - 1)
-                }
-
-                return value
+                return getValue(parts[1])
             }
         }
 
         return null
     }
 
+    private fun getValue(input: String): String {
+        var value = input.trim()
+
+        // Remove surrounding quotes if present (handles bcrypt hashes)
+        if ((value.startsWith("'") && value.endsWith("'")) ||
+            (value.startsWith("\"") && value.endsWith("\""))
+        ) {
+            value = value.substring(1, value.length - 1)
+        }
+
+        return value
+    }
+
     private fun validateConfig() {
         if (!configFile.exists()) {
+            logger.error("Config file does not exist: {}", configFile.absolutePath)
             throw Exception("Configuration file not found: ${configFile.absolutePath}")
         }
     }

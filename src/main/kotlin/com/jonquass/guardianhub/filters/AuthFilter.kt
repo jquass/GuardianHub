@@ -1,7 +1,8 @@
 package com.jonquass.guardianhub.filters
 
 import com.jonquass.guardianhub.config.Loggable
-import com.jonquass.guardianhub.managers.AuthManager
+import com.jonquass.guardianhub.managers.auth.AuthManager
+import com.jonquass.guardianhub.managers.auth.SessionManager
 import jakarta.ws.rs.container.ContainerRequestContext
 import jakarta.ws.rs.container.ContainerRequestFilter
 import jakarta.ws.rs.container.PreMatching
@@ -29,7 +30,7 @@ class AuthFilter :
 
         // All other paths require authentication
         val authHeader = requestContext.getHeaderString("Authorization")
-        val token = authHeader?.removePrefix("Bearer ")?.trim()
+        val token = AuthManager.getToken(authHeader)
 
         if (token.isNullOrEmpty()) {
             logger.warn("No auth token provided for: {}", path)
@@ -37,7 +38,7 @@ class AuthFilter :
             return
         }
 
-        if (!AuthManager.isValidSession(token)) {
+        if (!SessionManager.isValidSession(token)) {
             logger.warn("Invalid or expired token for: {}", path)
             abortWithUnauthorized(requestContext, "Invalid or expired authentication token")
             return

@@ -156,7 +156,7 @@ object AuthManager : Loggable {
             true
         } catch (e: Exception) {
             logger.error("Failed to reset password: {}", e.message, e)
-            false
+            throw e
         }
     }
 
@@ -189,7 +189,7 @@ object AuthManager : Loggable {
             true
         } catch (e: Exception) {
             logger.error("Failed to change password: {}", e.message, e)
-            false
+            throw e
         }
     }
 }

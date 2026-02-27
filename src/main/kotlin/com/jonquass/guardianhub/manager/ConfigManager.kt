@@ -1,12 +1,12 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.ConfigResponse
 import com.jonquass.guardianhub.core.config.CategoryInfo
 import com.jonquass.guardianhub.core.config.ConfigEntry
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.config.EnvCategory
-import com.jonquass.guardianhub.core.manager.Result
 import java.io.File
 
 object ConfigManager : Loggable {

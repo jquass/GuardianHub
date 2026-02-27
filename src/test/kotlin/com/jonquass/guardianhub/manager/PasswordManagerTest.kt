@@ -2,8 +2,8 @@ package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.manager.errOrThrow
-import com.jonquass.guardianhub.core.manager.getOrThrow
+import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockkObject

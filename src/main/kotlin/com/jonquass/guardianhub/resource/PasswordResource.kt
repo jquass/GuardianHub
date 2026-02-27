@@ -1,7 +1,7 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
-import com.jonquass.guardianhub.core.manager.toResponse
+import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.PasswordManager
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.POST

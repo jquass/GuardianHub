@@ -1,10 +1,11 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import com.jonquass.guardianhub.core.api.UpdatePasswordResponse
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.manager.Result
+import com.jonquass.guardianhub.core.errOrThrow
 import com.jonquass.guardianhub.validator.PasswordValidator
 import jakarta.ws.rs.core.Response
 
@@ -13,8 +14,8 @@ object PasswordManager : Loggable {
 
   fun updatePiholePassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
     val validationResult = PasswordValidator.validate(request.password)
-    if (validationResult.errorResponse != null) {
-      return Result.Error(validationResult.errorResponse.toString(), Response.Status.BAD_REQUEST)
+    if (validationResult.isError) {
+      return validationResult.errOrThrow()
     }
 
     logger.info("Updating Pi-hole password")
@@ -47,8 +48,8 @@ object PasswordManager : Loggable {
 
   fun updateWireGuardPassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
     val validationResult = PasswordValidator.validate(request.password)
-    if (validationResult.errorResponse != null) {
-      return Result.Error(validationResult.errorResponse.toString(), Response.Status.BAD_REQUEST)
+    if (validationResult.isError) {
+      return validationResult.errOrThrow()
     }
 
     logger.info("Updating WireGuard password in .env file...")

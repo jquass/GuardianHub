@@ -4,8 +4,8 @@ import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.manager.errOrThrow
-import com.jonquass.guardianhub.core.manager.getOrThrow
+import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.ConfigManager
 import io.mockk.every
 import io.mockk.mockkObject

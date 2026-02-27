@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
+import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.TimezoneManager
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.GET
@@ -14,11 +15,11 @@ import jakarta.ws.rs.core.Response
 class TimezoneResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  fun getTimezones(): Response = TimezoneManager.getTimezones()
+  fun getTimezones(): Response = TimezoneManager.getTimezonesResult().toResponse()
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   fun updateTimezone(request: UpdateTimezoneRequest): Response =
-      TimezoneManager.updateTimezones(request)
+      TimezoneManager.updateTimezonesResult(request).toResponse()
 }

@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.config.Env
 import jakarta.ws.rs.core.Response
@@ -11,46 +12,30 @@ object TimezoneManager : Loggable {
 
   // Cache of valid timezone IDs
   private val validTimezones: Set<String> by lazy { ZoneId.getAvailableZoneIds() }
+  private val sortedTimezones: List<String> by lazy { validTimezones.sorted() }
 
-  fun getTimezones(): Response =
+  fun getTimezonesResult(): Result<Map<String, Any>> =
       try {
-        val timezones = validTimezones.sorted()
-
-        Response.ok(
-                mapOf(
-                    "status" to "success",
-                    "timezones" to timezones,
-                ),
-            )
-            .build()
+        return Result.Success(
+            mapOf(
+                "status" to "success",
+                "timezones" to sortedTimezones,
+            ))
       } catch (e: Exception) {
         logger.error("Failed to get timezones: {}", e.message, e)
-        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(
-                mapOf(
-                    "status" to "error",
-                    "message" to "Failed to get timezones: ${e.message}",
-                ),
-            )
-            .build()
+        return Result.Error("Failed to get timezones")
       }
 
   fun isValidTimezone(timezone: String): Boolean = validTimezones.contains(timezone)
 
-  fun updateTimezones(request: UpdateTimezoneRequest): Response {
+  fun updateTimezonesResult(request: UpdateTimezoneRequest): Result<Map<String, Any>> {
     return try {
       // Validate timezone is in the list of valid timezones
       if (!isValidTimezone(request.timezone)) {
         logger.warn("Invalid timezone attempted: {}", request.timezone)
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(
-                mapOf(
-                    "status" to "error",
-                    "message" to
-                        "Invalid timezone: ${request.timezone}. Must be a valid timezone from the list.",
-                ),
-            )
-            .build()
+        return Result.Error(
+            "Invalid timezone: ${request.timezone}. Must be a valid timezone from the list.",
+            Response.Status.BAD_REQUEST)
       }
 
       logger.info("Updating timezone to: {}", request.timezone)
@@ -68,24 +53,15 @@ object TimezoneManager : Loggable {
       // Start async restart and get task ID
       val taskId = ServiceStatusManager.restartServicesAsync(servicesToRestart)
 
-      Response.ok(
-              mapOf(
-                  "status" to "success",
-                  "message" to "Timezone updated to ${request.timezone}. Services are restarting.",
-                  "taskId" to taskId,
-              ),
-          )
-          .build()
+      Result.Success(
+          mapOf(
+              "status" to "success",
+              "message" to "Timezone updated to ${request.timezone}. Services are restarting.",
+              "taskId" to taskId,
+          ))
     } catch (e: Exception) {
       logger.error("Failed to update timezone: {}", e.message, e)
-      Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity(
-              mapOf(
-                  "status" to "error",
-                  "message" to "Failed to update timezone: ${e.message}",
-              ),
-          )
-          .build()
+      Result.Error("Failed to update timezone")
     }
   }
 }

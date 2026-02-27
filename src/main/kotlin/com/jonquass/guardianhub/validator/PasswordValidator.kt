@@ -11,7 +11,7 @@ object PasswordValidator {
 
     if (password.length < 8) {
       return Result.Error(
-          "Password must not be at least 8 characters long", Response.Status.BAD_REQUEST)
+          "Password must be at least 8 characters long", Response.Status.BAD_REQUEST)
     }
 
     return Result.Success(null)

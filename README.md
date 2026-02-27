@@ -1,3 +1,6 @@
+[![codecov](https://codecov.io/gh/jquass/GuardianHub/branch/main/graph/badge.svg)](https://codecov.io/gh/jquass/GuardianHub)
+
+
 # Guardian Hub Config UI
 
 A unified web interface for managing the Guardian Hub - a Raspberry Pi-based network appliance providing network-wide ad blocking, VPN access, and DNS privacy.

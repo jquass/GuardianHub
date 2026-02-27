@@ -1,12 +1,12 @@
 package com.jonquass.guardianhub.manager.auth
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.LoginResponse
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.manager.Result
 import com.jonquass.guardianhub.manager.ConfigManager
 import jakarta.ws.rs.core.Response
 import java.io.File

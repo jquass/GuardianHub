@@ -3,7 +3,7 @@ package com.jonquass.guardianhub.resource
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
-import com.jonquass.guardianhub.core.manager.toResponse
+import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.GET

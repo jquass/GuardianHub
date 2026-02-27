@@ -1,28 +1,19 @@
 package com.jonquass.guardianhub.validator
 
-import com.jonquass.guardianhub.core.validator.PasswordResult
+import com.jonquass.guardianhub.core.Result
 import jakarta.ws.rs.core.Response
 
 object PasswordValidator {
-  fun validate(password: String): PasswordResult {
+  fun validate(password: String): Result<Nothing?> {
     if (password.isBlank()) {
-      return PasswordResult(errorResponse("Password cannot be empty"))
+      return Result.Error("Password must not be blank", Response.Status.BAD_REQUEST)
     }
 
     if (password.length < 8) {
-      return PasswordResult(errorResponse("Password must be at least 8 characters"))
+      return Result.Error(
+          "Password must be at least 8 characters long", Response.Status.BAD_REQUEST)
     }
 
-    return PasswordResult()
+    return Result.Success(null)
   }
-
-  private fun errorResponse(message: String): Response =
-      Response.status(Response.Status.BAD_REQUEST)
-          .entity(
-              mapOf(
-                  "status" to "error",
-                  "message" to message,
-              ),
-          )
-          .build()
 }

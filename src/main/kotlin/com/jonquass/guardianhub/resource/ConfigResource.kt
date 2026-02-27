@@ -1,6 +1,6 @@
 package com.jonquass.guardianhub.resource
 
-import com.jonquass.guardianhub.core.manager.toResponse
+import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.ConfigManager
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path

@@ -1,7 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.manager.getOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import java.io.File
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions

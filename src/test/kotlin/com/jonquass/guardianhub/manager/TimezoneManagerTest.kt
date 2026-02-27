@@ -3,7 +3,6 @@ package com.jonquass.guardianhub.manager
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.errOrThrow
 import com.jonquass.guardianhub.core.getOrThrow
-import com.jonquass.guardianhub.core.toResponse
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockkObject
@@ -56,11 +55,11 @@ class TimezoneManagerTest {
   // --- getTimezones ---
 
   @Test
-  fun `getTimezones should return 200 with sorted timezones`() {
-    val response = TimezoneManager.getTimezonesResult()
+  fun `getTimezones should return success with sorted timezones`() {
+    val result = TimezoneManager.getTimezonesResult()
 
-    assertThat(response.isSuccess).isTrue()
-    val body = response.getOrThrow()
+    assertThat(result.isSuccess).isTrue()
+    val body = result.getOrThrow()
 
     assertThat(body["status"]).isEqualTo("success")
 
@@ -73,45 +72,38 @@ class TimezoneManagerTest {
   // --- updateTimezones ---
 
   @Test
-  fun `updateTimezones should return 400 for invalid timezone`() {
+  fun `updateTimezones should return error for invalid timezone`() {
     val result =
         TimezoneManager.updateTimezonesResult(UpdateTimezoneRequest(timezone = "Fake/Timezone"))
+
     assertThat(result.isError).isTrue()
-
     val error = result.errOrThrow()
-
     assertThat(error.message).contains("Fake/Timezone")
-    assertThat(error.toResponse().status).isEqualTo(Response.Status.BAD_REQUEST.statusCode)
+    assertThat(error.code).isEqualTo(Response.Status.BAD_REQUEST)
   }
 
   @Test
-  fun `updateTimezones should return 200 for valid timezone`() {
+  fun `updateTimezones should return success for valid timezone`() {
     every { ServiceStatusManager.restartServicesAsync(any()) } returns "test-task-id"
 
-    val response =
+    val result =
         TimezoneManager.updateTimezonesResult(UpdateTimezoneRequest(timezone = "America/New_York"))
-            .toResponse()
 
-    assertThat(response.status).isEqualTo(Response.Status.OK.statusCode)
-
-    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, Any>
-    assertThat(body["status"]).isEqualTo("success")
+    assertThat(result.isSuccess).isTrue()
+    val body = result.getOrThrow()
     assertThat(body["taskId"]).isEqualTo("test-task-id")
     assertThat(body["message"] as String).contains("America/New_York")
   }
 
   @Test
-  fun `updateTimezones should return 500 when restartServicesAsync throws`() {
+  fun `updateTimezones should return error when restartServicesAsync throws`() {
     every { ServiceStatusManager.restartServicesAsync(any()) } throws
         RuntimeException("Docker error")
 
-    val response =
+    val result =
         TimezoneManager.updateTimezonesResult(UpdateTimezoneRequest(timezone = "America/New_York"))
-            .toResponse()
 
-    assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
-
-    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, Any>
-    assertThat(body["status"]).isEqualTo("error")
+    assertThat(result.isError).isTrue()
+    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR)
   }
 }

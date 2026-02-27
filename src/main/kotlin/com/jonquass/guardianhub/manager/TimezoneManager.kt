@@ -15,16 +15,11 @@ object TimezoneManager : Loggable {
   private val sortedTimezones: List<String> by lazy { validTimezones.sorted() }
 
   fun getTimezonesResult(): Result<Map<String, Any>> =
-      try {
-        return Result.Success(
-            mapOf(
-                "status" to "success",
-                "timezones" to sortedTimezones,
-            ))
-      } catch (e: Exception) {
-        logger.error("Failed to get timezones: {}", e.message, e)
-        return Result.Error("Failed to get timezones")
-      }
+      Result.Success(
+          mapOf(
+              "status" to "success",
+              "timezones" to sortedTimezones,
+          ))
 
   fun isValidTimezone(timezone: String): Boolean = validTimezones.contains(timezone)
 

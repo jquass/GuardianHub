@@ -10,39 +10,39 @@ import jakarta.ws.rs.core.Response
 
 @Path("/status")
 class ServiceStatusResource {
-    @GET
-    @Path("/task/{taskId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getTaskStatus(
-        @PathParam("taskId") taskId: String,
-    ): Response {
-        val status = ServiceStatusManager.getTaskStatus(taskId)
+  @GET
+  @Path("/task/{taskId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  fun getTaskStatus(
+      @PathParam("taskId") taskId: String,
+  ): Response {
+    val status = ServiceStatusManager.getTaskStatus(taskId)
 
-        return if (status != null) {
-            Response
-                .ok(
-                    mapOf(
-                        "status" to "success",
-                        "task" to
-                            mapOf(
-                                "id" to status.taskId,
-                                "status" to status.status,
-                                "message" to status.message,
-                                "progress" to status.progress,
-                                "servicesRestarted" to status.servicesRestarted,
-                                "servicesFailed" to status.servicesFailed,
-                            ),
-                    ),
-                ).build()
-        } else {
-            Response
-                .status(Response.Status.NOT_FOUND)
-                .entity(
-                    mapOf(
-                        "status" to "error",
-                        "message" to "Task not found",
-                    ),
-                ).build()
-        }
+    return if (status != null) {
+      Response.ok(
+              mapOf(
+                  "status" to "success",
+                  "task" to
+                      mapOf(
+                          "id" to status.taskId,
+                          "status" to status.status,
+                          "message" to status.message,
+                          "progress" to status.progress,
+                          "servicesRestarted" to status.servicesRestarted,
+                          "servicesFailed" to status.servicesFailed,
+                      ),
+              ),
+          )
+          .build()
+    } else {
+      Response.status(Response.Status.NOT_FOUND)
+          .entity(
+              mapOf(
+                  "status" to "error",
+                  "message" to "Task not found",
+              ),
+          )
+          .build()
     }
+  }
 }

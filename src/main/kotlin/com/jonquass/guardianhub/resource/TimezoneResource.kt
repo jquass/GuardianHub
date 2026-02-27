@@ -12,12 +12,13 @@ import jakarta.ws.rs.core.Response
 
 @Path("/timezone")
 class TimezoneResource {
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getTimezones(): Response = TimezoneManager.getTimezones()
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  fun getTimezones(): Response = TimezoneManager.getTimezones()
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun updateTimezone(request: UpdateTimezoneRequest): Response = TimezoneManager.updateTimezones(request)
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  fun updateTimezone(request: UpdateTimezoneRequest): Response =
+      TimezoneManager.updateTimezones(request)
 }

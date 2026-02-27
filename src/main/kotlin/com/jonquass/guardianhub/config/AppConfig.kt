@@ -7,7 +7,7 @@ import jakarta.ws.rs.ext.Provider
 
 @Provider
 class AppConfig : ContextResolver<ObjectMapper> {
-    private val objectMapper = ObjectMapper().registerKotlinModule()
+  private val objectMapper = ObjectMapper().registerKotlinModule()
 
-    override fun getContext(type: Class<*>?): ObjectMapper = objectMapper
+  override fun getContext(type: Class<*>?): ObjectMapper = objectMapper
 }

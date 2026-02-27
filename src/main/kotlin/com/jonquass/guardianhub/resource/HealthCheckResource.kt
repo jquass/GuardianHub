@@ -15,16 +15,16 @@ data class StatusResponse(
 
 @Path("/")
 class HealthCheckResource {
-    @GET
-    @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun status(): Response {
-        val response =
-            StatusResponse(
-                status = "healthy",
-                service = "Guardian Hub Config UI",
-                version = "1.0.0",
-            )
-        return Response.ok(response).build()
-    }
+  @GET
+  @Path("/status")
+  @Produces(MediaType.APPLICATION_JSON)
+  fun status(): Response {
+    val response =
+        StatusResponse(
+            status = "healthy",
+            service = "Guardian Hub Config UI",
+            version = "1.0.0",
+        )
+    return Response.ok(response).build()
+  }
 }

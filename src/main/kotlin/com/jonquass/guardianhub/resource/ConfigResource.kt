@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.Response
 
 @Path("/config")
 class ConfigResource {
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getConfig(): Response = ConfigManager.readConfig().toResponse()
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  fun getConfig(): Response = ConfigManager.readConfig().toResponse()
 }

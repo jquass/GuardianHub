@@ -12,21 +12,24 @@ import jakarta.ws.rs.core.Response
 
 @Path("/password")
 class PasswordResource {
-    @POST
-    @Path("/pihole")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun updatePiholePassword(request: UpdatePasswordRequest): Response = PasswordManager.updatePiholePassword(request).toResponse()
+  @POST
+  @Path("/pihole")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  fun updatePiholePassword(request: UpdatePasswordRequest): Response =
+      PasswordManager.updatePiholePassword(request).toResponse()
 
-    @POST
-    @Path("/wireguard")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun updateWireGuardPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateWireGuardPassword(request).toResponse()
+  @POST
+  @Path("/wireguard")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  fun updateWireGuardPassword(request: UpdatePasswordRequest): Response =
+      PasswordManager.updateWireGuardPassword(request).toResponse()
 
-    @POST
-    @Path("/npm")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    fun updateNpmPassword(request: UpdatePasswordRequest): Response = PasswordManager.updateNpmPassword(request).toResponse()
+  @POST
+  @Path("/npm")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  fun updateNpmPassword(request: UpdatePasswordRequest): Response =
+      PasswordManager.updateNpmPassword(request).toResponse()
 }

@@ -16,7 +16,7 @@ data class StatusResponse(
 @Path("/")
 class HealthCheckResource {
   @GET
-  @Path("/status")
+  @Path("/health")
   @Produces(MediaType.APPLICATION_JSON)
   fun status(): Response {
     val response =

@@ -39,6 +39,6 @@ class GrizzlyServerExtension : BeforeAllCallback, ExtensionContext.Store.Closeab
   }
 
   override fun close() {
-      server.shutdownNow()
+    server.shutdownNow()
   }
 }

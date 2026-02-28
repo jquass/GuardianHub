@@ -10,15 +10,14 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(GrizzlyServerExtension::class)
 class HealthCheckAcceptanceTest {
 
-    @Test
-    fun `health check returns 200 without auth`() {
-        When {
-            get("/health")
-        } Then {
-            statusCode(200)
-            body("status", equalTo("healthy"))
-            body("service", equalTo("Guardian Hub Config UI"))
-            body("version", equalTo("1.0.0"))
+  @Test
+  fun `health check returns 200 without auth`() {
+    When { get("/health") } Then
+        {
+          statusCode(200)
+          body("status", equalTo("healthy"))
+          body("service", equalTo("Guardian Hub Config UI"))
+          body("version", equalTo("1.0.0"))
         }
-    }
+  }
 }

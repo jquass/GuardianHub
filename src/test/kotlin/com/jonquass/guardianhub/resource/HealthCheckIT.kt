@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(GrizzlyServerExtension::class)
-class HealthCheckAcceptanceTest {
+class HealthCheckIT {
 
   @Test
   fun `health check returns 200 without auth`() {

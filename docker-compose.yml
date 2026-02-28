@@ -10,7 +10,7 @@ services:
     environment:
       - PORT=8888
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/status"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8888/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

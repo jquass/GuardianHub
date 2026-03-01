@@ -12,7 +12,7 @@ class HealthCheckIT {
 
   @Test
   fun `health check returns 200 without auth`() {
-    When { get("/health") } Then
+    When { get("/api/health") } Then
         {
           statusCode(200)
           body("status", equalTo("healthy"))

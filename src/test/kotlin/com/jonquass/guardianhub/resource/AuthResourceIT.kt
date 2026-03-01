@@ -1,6 +1,8 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.GrizzlyServerExtension
+import com.jonquass.guardianhub.GrizzlyServerExtension.Companion.TEST_PASSWORD
+import com.jonquass.guardianhub.GrizzlyServerExtension.Companion.TEST_SERIAL_NUMBER
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
 import io.restassured.module.kotlin.extensions.Given
@@ -17,10 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 class AuthResourceIT {
 
   @Test
-  fun `login returns 200 with valid credentials`() {
+  fun `login returns 200 with valid credentials and does not require auth header`() {
     Given {
       contentType(ContentType.JSON)
-      body("""{"password": "password123"}""")
+      body("""{"password": "$TEST_PASSWORD"}""")
     } When
         {
           post("/api/auth/login")
@@ -58,7 +60,7 @@ class AuthResourceIT {
     val token =
         Given {
           contentType(ContentType.JSON)
-          body("""{"password": "password123"}""")
+          body("""{"password": "$TEST_PASSWORD"}""")
         } When
             {
               post("/api/auth/login")
@@ -76,7 +78,7 @@ class AuthResourceIT {
           get("/api/auth/check")
         } Then
         {
-          statusCode(200)
+          statusCode(Response.Status.OK.statusCode)
         }
   }
 
@@ -85,13 +87,13 @@ class AuthResourceIT {
     val token =
         Given {
           contentType(ContentType.JSON)
-          body("""{"password": "password123"}""")
+          body("""{"password": "$TEST_PASSWORD"}""")
         } When
             {
               post("/api/auth/login")
             } Then
             {
-              statusCode(200)
+              statusCode(Response.Status.OK.statusCode)
             } Extract
             {
               path<String>("token")
@@ -102,22 +104,23 @@ class AuthResourceIT {
           post("/api/auth/logout")
         } Then
         {
-          statusCode(200)
+          statusCode(Response.Status.OK.statusCode)
         }
   }
 
   @Test
   fun `change-password returns 200 with valid token`() {
+    val newPassword = "123wordpass"
     val token =
         Given {
           contentType(ContentType.JSON)
-          body("""{"password": "password123"}""")
+          body("""{"password": "$TEST_PASSWORD"}""")
         } When
             {
               post("/api/auth/login")
             } Then
             {
-              statusCode(200)
+              statusCode(Response.Status.OK.statusCode)
             } Extract
             {
               path<String>("token")
@@ -127,12 +130,73 @@ class AuthResourceIT {
       contentType(ContentType.JSON)
       header("Authorization", "Bearer $token")
       body(
-          """{"currentPassword": "password123", "serialNumber": "serial123", "newPassword": "123wordpass"}""")
-    } When { post("/api/auth/change-password") } Then { statusCode(200) }
+          """
+              {"currentPassword": "$TEST_PASSWORD", 
+              "serialNumber": "$TEST_SERIAL_NUMBER", 
+              "newPassword": "$newPassword"}
+              """
+              .trimIndent())
+    } When { post("/api/auth/change-password") } Then { statusCode(Response.Status.OK.statusCode) }
 
     Given {
       contentType(ContentType.JSON)
-      body("""{"password": "123wordpass"}""")
-    } When { post("/api/auth/login") } Then { statusCode(200) }
+      body("""{"password": "$newPassword"}""")
+    } When { post("/api/auth/login") } Then { statusCode(Response.Status.OK.statusCode) }
+  }
+
+  @Test
+  fun `reset-to-factory does not require auth header`() {
+    val newPassword = "123wordpass"
+    val token =
+        Given {
+          contentType(ContentType.JSON)
+          body("""{"password": "$TEST_PASSWORD"}""")
+        } When
+            {
+              post("/api/auth/login")
+            } Then
+            {
+              statusCode(Response.Status.OK.statusCode)
+            } Extract
+            {
+              path<String>("token")
+            }
+
+    Given {
+      contentType(ContentType.JSON)
+      header("Authorization", "Bearer $token")
+      body(
+          """
+              {"currentPassword": "$TEST_PASSWORD", 
+              "serialNumber": "$TEST_SERIAL_NUMBER", 
+              "newPassword": "$newPassword"}
+              """
+              .trimIndent())
+    } When { post("/api/auth/change-password") } Then { statusCode(Response.Status.OK.statusCode) }
+
+    Given {
+      contentType(ContentType.JSON)
+      body("""{"password": "$newPassword"}""")
+    } When { post("/api/auth/login") } Then { statusCode(Response.Status.OK.statusCode) }
+
+    Given {
+      contentType(ContentType.JSON)
+      body(
+          """
+              {"factoryPassword": "$TEST_PASSWORD", 
+              "serialNumber": "$TEST_SERIAL_NUMBER"}
+              """
+              .trimIndent())
+    } When { post("/api/auth/reset-to-factory") } Then { statusCode(Response.Status.OK.statusCode) }
+
+    Given {
+      contentType(ContentType.JSON)
+      body("""{"password": "$newPassword"}""")
+    } When { post("/api/auth/login") } Then { statusCode(Response.Status.UNAUTHORIZED.statusCode) }
+
+    Given {
+      contentType(ContentType.JSON)
+      body("""{"password": "$TEST_PASSWORD"}""")
+    } When { post("/api/auth/login") } Then { statusCode(Response.Status.OK.statusCode) }
   }
 }

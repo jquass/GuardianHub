@@ -18,10 +18,11 @@ class GrizzlyServerExtension :
   companion object {
     private var started = false
     private var server: HttpServer? = null
-    const val PORT = 9998
+    private const val PORT = 9998
 
-    private const val TEST_PASSWORD = "password123"
-    private const val TEST_SERIAL_NUMBER = "serial123"
+    internal const val TEST_PASSWORD = "password123"
+    internal const val TEST_SERIAL_NUMBER = "serial123"
+
     private lateinit var configFile: File
     private lateinit var factoryPasswordFile: File
     private lateinit var serialNumberFile: File

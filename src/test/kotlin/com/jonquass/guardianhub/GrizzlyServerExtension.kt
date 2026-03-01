@@ -1,12 +1,14 @@
 package com.jonquass.guardianhub
 
 import com.jonquass.guardianhub.config.ServerFactory
+import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.manager.ConfigManager
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.PasswordHashManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
 import io.restassured.RestAssured
 import java.io.File
+import java.time.ZoneId
 import org.glassfish.grizzly.http.server.HttpServer
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -70,7 +72,12 @@ class GrizzlyServerExtension :
 
   private fun writeTestFixtures() {
     val passwordHash = PasswordHashManager.hashPassword(TEST_PASSWORD)
-    configFile.writeText("LOGIN_PASSWORD='$passwordHash'\n")
+    configFile.writeText(
+        """
+      ${Env.LOGIN_PASSWORD}='$passwordHash'
+      ${Env.TZ}='${ZoneId.systemDefault()}'
+      """
+            .trimIndent())
     factoryPasswordFile.writeText(passwordHash)
     serialNumberFile.writeText(PasswordHashManager.hashPassword(TEST_SERIAL_NUMBER))
   }

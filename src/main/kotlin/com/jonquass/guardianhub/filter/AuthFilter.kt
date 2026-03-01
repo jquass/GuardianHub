@@ -54,9 +54,9 @@ class AuthFilter : ContainerRequestFilter, Loggable {
     if (path.endsWith(".ico")) return true
 
     // API endpoints
-    if (path.endsWith("auth/login")) return true
-    if (path.endsWith("auth/reset-to-factory")) return true
-    if (path.endsWith("health")) return true
+    if (path == "auth/login") return true
+    if (path == "auth/reset-to-factory") return true
+    if (path == "health") return true
 
     return false
   }

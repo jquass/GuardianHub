@@ -86,15 +86,22 @@ class AuthFilterTest {
   }
 
   @Test
+  fun `filter should allow auth health endpoint`() {
+    val context = mockContext("health", method = "GET")
+    filter.filter(context)
+    verify(exactly = 0) { context.abortWith(any()) }
+  }
+
+  @Test
   fun `filter should allow auth login endpoint`() {
-    val context = mockContext("api/auth/login", method = "POST")
+    val context = mockContext("auth/login", method = "POST")
     filter.filter(context)
     verify(exactly = 0) { context.abortWith(any()) }
   }
 
   @Test
   fun `filter should allow auth reset-to-factory endpoint`() {
-    val context = mockContext("api/auth/reset-to-factory", method = "POST")
+    val context = mockContext("auth/reset-to-factory", method = "POST")
     filter.filter(context)
     verify(exactly = 0) { context.abortWith(any()) }
   }

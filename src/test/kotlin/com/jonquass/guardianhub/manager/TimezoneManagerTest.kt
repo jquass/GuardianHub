@@ -61,9 +61,7 @@ class TimezoneManagerTest {
     assertThat(result.isSuccess).isTrue()
     val body = result.getOrThrow()
 
-    assertThat(body["status"]).isEqualTo("success")
-
-    @Suppress("UNCHECKED_CAST") val timezones = body["timezones"] as List<String>
+    val timezones = body.timezones
     assertThat(timezones).isNotEmpty()
     assertThat(timezones).contains("UTC", "America/New_York")
     assertThat(timezones).isSortedAccordingTo(compareBy { it })

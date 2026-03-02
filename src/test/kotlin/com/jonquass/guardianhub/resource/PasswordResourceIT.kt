@@ -1,7 +1,6 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.GrizzlyServerExtension
-import com.jonquass.guardianhub.GrizzlyServerExtension.Companion.TEST_PASSWORD
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
@@ -29,7 +28,7 @@ class PasswordResourceIT {
 
   @Test
   fun `pihole password update returns 200 with valid token`() {
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given {
       contentType(ContentType.JSON)
@@ -58,7 +57,7 @@ class PasswordResourceIT {
 
   @Test
   fun `wireguard password update returns 200 with valid token`() {
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given {
       contentType(ContentType.JSON)
@@ -87,7 +86,7 @@ class PasswordResourceIT {
 
   @Test
   fun `npm password update returns 200 with valid token`() {
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given {
       contentType(ContentType.JSON)

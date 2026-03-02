@@ -2,6 +2,7 @@ package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
 import com.jonquass.guardianhub.core.Result
+import com.jonquass.guardianhub.core.api.TimezoneResponse
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.config.Env
 import jakarta.ws.rs.core.Response
@@ -13,13 +14,10 @@ object TimezoneManager : Loggable {
   // Cache of valid timezone IDs
   private val validTimezones: Set<String> by lazy { ZoneId.getAvailableZoneIds() }
   private val sortedTimezones: List<String> by lazy { validTimezones.sorted() }
+  private val servicesToRestart = listOf("cloudflared", "pihole")
 
-  fun getTimezonesResult(): Result<Map<String, Any>> =
-      Result.Success(
-          mapOf(
-              "status" to "success",
-              "timezones" to sortedTimezones,
-          ))
+  fun getTimezonesResult(): Result<TimezoneResponse> =
+      Result.Success(TimezoneResponse(sortedTimezones))
 
   fun isValidTimezone(timezone: String): Boolean = validTimezones.contains(timezone)
 
@@ -34,20 +32,8 @@ object TimezoneManager : Loggable {
       }
 
       logger.info("Updating timezone to: {}", request.timezone)
-
-      // Update .env file
       ConfigManager.upsertConfig(Env.TZ, request.timezone)
-
-      // Services to restart (only those that use TZ)
-      val servicesToRestart =
-          listOf(
-              "cloudflared",
-              "pihole",
-          )
-
-      // Start async restart and get task ID
       val taskId = ServiceStatusManager.restartServicesAsync(servicesToRestart)
-
       Result.Success(
           mapOf(
               "status" to "success",

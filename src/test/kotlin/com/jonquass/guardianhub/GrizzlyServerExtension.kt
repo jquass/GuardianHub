@@ -3,10 +3,20 @@ package com.jonquass.guardianhub
 import com.jonquass.guardianhub.config.ServerFactory
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.manager.ConfigManager
+import com.jonquass.guardianhub.manager.DockerManager
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.PasswordHashManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import io.restassured.RestAssured
+import io.restassured.http.ContentType
+import io.restassured.module.kotlin.extensions.Extract
+import io.restassured.module.kotlin.extensions.Given
+import io.restassured.module.kotlin.extensions.Then
+import io.restassured.module.kotlin.extensions.When
+import jakarta.ws.rs.core.Response
 import java.io.File
 import java.time.ZoneId
 import org.glassfish.grizzly.http.server.HttpServer
@@ -28,6 +38,22 @@ class GrizzlyServerExtension :
     private lateinit var configFile: File
     private lateinit var factoryPasswordFile: File
     private lateinit var serialNumberFile: File
+
+    fun loginAndGetToken(password: String = TEST_PASSWORD): String {
+      return Given {
+        contentType(ContentType.JSON)
+        body("""{"password": "$password"}""")
+      } When
+          {
+            post("/api/auth/login")
+          } Then
+          {
+            statusCode(Response.Status.OK.statusCode)
+          } Extract
+          {
+            path("token")
+          }
+    }
   }
 
   override fun beforeAll(context: ExtensionContext) {
@@ -58,9 +84,32 @@ class GrizzlyServerExtension :
     // Reset to known state before each test
     writeTestFixtures()
     SessionManager.invalidateSessions()
+    mockkObject(DockerManager)
+    every { DockerManager.exec(*anyVararg<String>()) } returns true
+    every { DockerManager.recreateContainer(any()) } returns true
+    every { DockerManager.execWithOutput(*anyVararg()) } answers
+        {
+          val args = args.first() as Array<*>
+          when {
+            // NPM token fetch
+            args.any { it.toString().contains("/api/tokens") } ->
+                Pair(0, """{"token":"mock-npm-token","expires":"2025-01-01"}""")
+            // NPM user list
+            args.any { it.toString().contains("/api/users") && !it.toString().contains("/auth") } ->
+                Pair(0, """[{"id":1,"email":"admin@example.com"}]""")
+            // NPM password update
+            args.any { it.toString().contains("/auth") } -> Pair(0, "true")
+            // WireGuard password hash
+            args.any { it.toString().contains("wgpw") } ->
+                Pair(0, "PASSWORD_HASH=\$2a\$10\$mockedhash")
+            // Default
+            else -> Pair(0, "ok")
+          }
+        }
   }
 
   override fun close() {
+    unmockkAll()
     server?.shutdownNow()
     configFile.delete()
     factoryPasswordFile.delete()
@@ -76,6 +125,8 @@ class GrizzlyServerExtension :
         """
       ${Env.LOGIN_PASSWORD}='$passwordHash'
       ${Env.TZ}='${ZoneId.systemDefault()}'
+      ${Env.NPM_ADMIN_EMAIL}=admin@example.com
+      ${Env.NPM_ADMIN_PASSWORD}=oldpassword
       """
             .trimIndent())
     factoryPasswordFile.writeText(passwordHash)

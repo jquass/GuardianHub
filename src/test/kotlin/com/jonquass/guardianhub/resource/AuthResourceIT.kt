@@ -56,23 +56,8 @@ class AuthResourceIT {
 
   @Test
   fun `check returns 200 with valid token`() {
-    // Login first to get a token
-    val token =
-        Given {
-          contentType(ContentType.JSON)
-          body("""{"password": "$TEST_PASSWORD"}""")
-        } When
-            {
-              post("/api/auth/login")
-            } Then
-            {
-              statusCode(200)
-            } Extract
-            {
-              path<String>("token")
-            }
+    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
 
-    // Use token to check auth
     Given { header("Authorization", "Bearer $token") } When
         {
           get("/api/auth/check")
@@ -84,20 +69,7 @@ class AuthResourceIT {
 
   @Test
   fun `logout returns 200 with valid token`() {
-    val token =
-        Given {
-          contentType(ContentType.JSON)
-          body("""{"password": "$TEST_PASSWORD"}""")
-        } When
-            {
-              post("/api/auth/login")
-            } Then
-            {
-              statusCode(Response.Status.OK.statusCode)
-            } Extract
-            {
-              path<String>("token")
-            }
+    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
 
     Given { header("Authorization", "Bearer $token") } When
         {
@@ -111,20 +83,7 @@ class AuthResourceIT {
   @Test
   fun `change-password returns 200 with valid token`() {
     val newPassword = "123wordpass"
-    val token =
-        Given {
-          contentType(ContentType.JSON)
-          body("""{"password": "$TEST_PASSWORD"}""")
-        } When
-            {
-              post("/api/auth/login")
-            } Then
-            {
-              statusCode(Response.Status.OK.statusCode)
-            } Extract
-            {
-              path<String>("token")
-            }
+    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
 
     Given {
       contentType(ContentType.JSON)
@@ -138,10 +97,7 @@ class AuthResourceIT {
               .trimIndent())
     } When { post("/api/auth/change-password") } Then { statusCode(Response.Status.OK.statusCode) }
 
-    Given {
-      contentType(ContentType.JSON)
-      body("""{"password": "$newPassword"}""")
-    } When { post("/api/auth/login") } Then { statusCode(Response.Status.OK.statusCode) }
+    GrizzlyServerExtension.loginAndGetToken(newPassword)
   }
 
   @Test

@@ -15,6 +15,7 @@ class ServiceStatusManagerTest {
   @BeforeEach
   fun setUp() {
     mockkObject(DockerManager)
+    every { DockerManager.exec(*anyVararg<String>()) } returns true
   }
 
   @AfterEach
@@ -24,8 +25,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync should return a task id`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
 
     assertThat(taskId).isNotBlank()
@@ -33,8 +32,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync should return unique task ids for each call`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-
     val taskId1 = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
     val taskId2 = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
 
@@ -43,8 +40,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync should initially set status to pending`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-
     every { DockerManager.exec(*anyVararg<String>()) } answers
         {
           Thread.sleep(200)
@@ -67,7 +62,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should return completed status after restart finishes`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
 
     await(taskId)
@@ -81,8 +75,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should reach progress 100 after all services processed`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard", "npm"))
 
     await(taskId)
@@ -93,8 +85,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should call DockerManager once per service`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
 
     await(taskId)
@@ -115,7 +105,6 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync servicesRestarted is empty due to untracked exec result`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
 
     await(taskId)

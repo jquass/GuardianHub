@@ -131,5 +131,9 @@ class GrizzlyServerExtension :
             .trimIndent())
     factoryPasswordFile.writeText(passwordHash)
     serialNumberFile.writeText(PasswordHashManager.hashPassword(TEST_SERIAL_NUMBER))
+
+    ConfigManager.configFile = configFile
+    AuthManager.factoryPasswordFile = factoryPasswordFile
+    AuthManager.serialNumberFile = serialNumberFile
   }
 }

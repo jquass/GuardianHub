@@ -56,7 +56,7 @@ class AuthResourceIT {
 
   @Test
   fun `check returns 200 with valid token`() {
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given { header("Authorization", "Bearer $token") } When
         {
@@ -69,7 +69,7 @@ class AuthResourceIT {
 
   @Test
   fun `logout returns 200 with valid token`() {
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given { header("Authorization", "Bearer $token") } When
         {
@@ -83,7 +83,7 @@ class AuthResourceIT {
   @Test
   fun `change-password returns 200 with valid token`() {
     val newPassword = "123wordpass"
-    val token = GrizzlyServerExtension.loginAndGetToken(TEST_PASSWORD)
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given {
       contentType(ContentType.JSON)

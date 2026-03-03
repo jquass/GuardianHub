@@ -63,7 +63,6 @@ class ServiceStatusManagerTest {
     assertThat(result.isSuccess).isTrue
     val response = result.getOrThrow()
     assertThat(response).isNull()
-
   }
 
   @Test

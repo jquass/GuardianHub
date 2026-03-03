@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
@@ -47,17 +48,21 @@ class ServiceStatusManagerTest {
         }
 
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
-    val status = ServiceStatusManager.getTaskStatus(taskId)
+    val result = ServiceStatusManager.getTaskStatus(taskId)
 
-    assertThat(status).isNotNull()
-    assertThat(status!!.taskId).isEqualTo(taskId)
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response?.taskId).isNotNull
+    assertThat(response?.taskId).isEqualTo(taskId)
   }
 
   @Test
-  fun `getTaskStatus should return null for unknown task id`() {
-    val status = ServiceStatusManager.getTaskStatus("unknown-id")
+  fun `getTaskStatus should return empty list for unknown task id`() {
+    val result = ServiceStatusManager.getTaskStatus("unknown-id")
 
-    assertThat(status).isNull()
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response).isNull()
   }
 
   @Test
@@ -66,11 +71,13 @@ class ServiceStatusManagerTest {
 
     await(taskId)
 
-    val status = ServiceStatusManager.getTaskStatus(taskId)
-    assertThat(status).isNotNull()
-    assertThat(status!!.status).isEqualTo("completed")
-    assertThat(status.progress).isEqualTo(100)
-    assertThat(status.message).isEqualTo("All services restarted successfully")
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response?.status).isEqualTo("completed")
+    assertThat(response?.progress).isEqualTo(100)
+    assertThat(response?.message).isEqualTo("All services restarted successfully")
   }
 
   @Test
@@ -79,8 +86,10 @@ class ServiceStatusManagerTest {
 
     await(taskId)
 
-    val status = ServiceStatusManager.getTaskStatus(taskId)
-    assertThat(status!!.progress).isEqualTo(100)
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response?.progress).isEqualTo(100)
   }
 
   @Test
@@ -98,9 +107,12 @@ class ServiceStatusManagerTest {
 
     await(taskId)
 
-    val status = ServiceStatusManager.getTaskStatus(taskId)
-    assertThat(status!!.status).isEqualTo("completed")
-    assertThat(status.progress).isEqualTo(100)
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response?.status).isEqualTo("completed")
+    assertThat(response?.progress).isEqualTo(100)
   }
 
   @Test
@@ -109,8 +121,11 @@ class ServiceStatusManagerTest {
 
     await(taskId)
 
-    val status = ServiceStatusManager.getTaskStatus(taskId)
-    assertThat(status!!.servicesRestarted).containsExactly("pihole")
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+
+    assertThat(result.isSuccess).isTrue
+    val response = result.getOrThrow()
+    assertThat(response?.servicesRestarted).containsExactly("pihole")
   }
 
   private fun await(
@@ -119,8 +134,11 @@ class ServiceStatusManagerTest {
   ) {
     val deadline = System.currentTimeMillis() + timeoutMs
     while (System.currentTimeMillis() < deadline) {
-      val status = ServiceStatusManager.getTaskStatus(taskId)
-      if (status?.status in listOf("completed", "failed")) return
+      val result = ServiceStatusManager.getTaskStatus(taskId)
+      assertThat(result.isSuccess).isTrue
+      val response = result.getOrThrow()
+
+      if (response?.status in listOf("completed", "failed")) return
       Thread.sleep(50)
     }
     throw AssertionError("Task $taskId did not complete within ${timeoutMs}ms")

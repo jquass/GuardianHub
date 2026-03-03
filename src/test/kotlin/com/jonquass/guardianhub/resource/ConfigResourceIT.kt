@@ -20,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(GrizzlyServerExtension::class)
 class ConfigResourceIT {
 
-  @Test fun `config resource returns 401 without auth`() {}
-
   @Test
   fun `config returns 401 without auth`() {
     When { get("/api/config") } Then { statusCode(Response.Status.UNAUTHORIZED.statusCode) }

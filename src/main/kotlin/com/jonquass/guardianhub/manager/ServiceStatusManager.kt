@@ -1,29 +1,22 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
+import com.jonquass.guardianhub.core.api.ServiceStatusResponse
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
-data class ServiceStatus(
-    val taskId: String,
-    val status: String, // "pending", "running", "completed", "failed"
-    val message: String,
-    val progress: Int, // 0-100
-    val servicesRestarted: List<String> = emptyList(),
-    val servicesFailed: List<String> = emptyList(),
-)
-
 object ServiceStatusManager : Loggable {
   private val logger = logger()
   private val executor = Executors.newFixedThreadPool(2)
-  private val tasks = ConcurrentHashMap<String, ServiceStatus>()
+  private val tasks = ConcurrentHashMap<String, ServiceStatusResponse>()
 
   fun restartServicesAsync(services: List<String>): String {
     val taskId = UUID.randomUUID().toString()
 
     tasks[taskId] =
-        ServiceStatus(
+        ServiceStatusResponse(
             taskId = taskId,
             status = "pending",
             message = "Restart queued",
@@ -36,7 +29,7 @@ object ServiceStatusManager : Loggable {
       } catch (e: Exception) {
         logger.error("Failed to restart services: {}", e.message, e)
         tasks[taskId] =
-            ServiceStatus(
+            ServiceStatusResponse(
                 taskId = taskId,
                 status = "failed",
                 message = "Error: ${e.message}",
@@ -55,7 +48,7 @@ object ServiceStatusManager : Loggable {
     logger.info("Starting service restart task: {}", taskId)
 
     tasks[taskId] =
-        ServiceStatus(
+        ServiceStatusResponse(
             taskId = taskId,
             status = "running",
             message = "Restarting services...",
@@ -72,7 +65,7 @@ object ServiceStatusManager : Loggable {
       val progress = ((index.toFloat() / totalServices) * 100).toInt()
 
       tasks[taskId] =
-          ServiceStatus(
+          ServiceStatusResponse(
               taskId = taskId,
               status = "running",
               message = "Restarting $service...",
@@ -105,7 +98,7 @@ object ServiceStatusManager : Loggable {
         }
 
     tasks[taskId] =
-        ServiceStatus(
+        ServiceStatusResponse(
             taskId = taskId,
             status = finalStatus,
             message = finalMessage,
@@ -117,5 +110,5 @@ object ServiceStatusManager : Loggable {
     logger.info("Service restart task completed: {}", taskId)
   }
 
-  fun getTaskStatus(taskId: String): ServiceStatus? = tasks[taskId]
+  fun getTaskStatus(taskId: String): Result<ServiceStatusResponse?> = Result.Success(tasks[taskId])
 }

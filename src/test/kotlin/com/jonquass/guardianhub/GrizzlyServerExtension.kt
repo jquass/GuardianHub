@@ -9,9 +9,7 @@ import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.PasswordHashManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkObject
-import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -21,7 +19,6 @@ import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.ws.rs.core.Response
 import java.io.File
-import java.net.InetAddress
 import java.time.ZoneId
 import org.glassfish.grizzly.http.server.HttpServer
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -89,7 +86,7 @@ class GrizzlyServerExtension :
     writeTestFixtures()
     SessionManager.invalidateSessions()
     mockkObject(DockerManager)
-    mockkStatic(InetAddress::class)
+
     every { DockerManager.exec(*anyVararg<String>()) } returns true
     every { DockerManager.recreateContainer(any()) } returns true
     every { DockerManager.execWithOutput(*anyVararg()) } answers
@@ -111,10 +108,6 @@ class GrizzlyServerExtension :
             else -> Pair(0, "ok")
           }
         }
-
-      every { InetAddress.getByName(not("homepage.guardian.home")) } answers {
-          callOriginal()
-      }
   }
 
   override fun close() {

@@ -86,6 +86,7 @@ class GrizzlyServerExtension :
     writeTestFixtures()
     SessionManager.invalidateSessions()
     mockkObject(DockerManager)
+
     every { DockerManager.exec(*anyVararg<String>()) } returns true
     every { DockerManager.recreateContainer(any()) } returns true
     every { DockerManager.execWithOutput(*anyVararg()) } answers

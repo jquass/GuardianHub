@@ -1,10 +1,10 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import jakarta.ws.rs.core.Response
 import java.io.File
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -38,17 +38,7 @@ class HomepageManagerTest {
 
     val response = HomepageManager.getHomepageLink()
 
-    assertThat(response.status).isEqualTo(Response.Status.OK.statusCode)
-  }
-
-  @Test
-  fun `getHomepageLink returns success status in body`() {
-    every { InetAddress.getByName("homepage.guardian.home") } returns mockk()
-
-    val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
-
-    assertThat(body["status"]).isEqualTo("success")
+    assertThat(response.isSuccess).isTrue
   }
 
   @Test
@@ -56,10 +46,11 @@ class HomepageManagerTest {
     every { InetAddress.getByName("homepage.guardian.home") } returns mockk()
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["url"]).isNotNull()
-    assertThat(body["url"] as String).startsWith("http://")
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.url).isNotEmpty()
+    assertThat(result.url).startsWith("http://")
   }
 
   @Test
@@ -67,9 +58,10 @@ class HomepageManagerTest {
     every { InetAddress.getByName("homepage.guardian.home") } returns mockk()
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["usedDns"]).isIn(true, false)
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.usedDns).isEqualTo(true)
   }
 
   @Test
@@ -77,10 +69,12 @@ class HomepageManagerTest {
     every { InetAddress.getByName("homepage.guardian.home") } returns mockk()
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["usedDns"]).isEqualTo(true)
-    assertThat(body["url"]).isEqualTo("http://homepage.guardian.home")
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.url).isNotEmpty()
+    assertThat(result.url).isEqualTo("http://homepage.guardian.home")
+    assertThat(result.usedDns).isEqualTo(true)
   }
 
   @Test
@@ -89,9 +83,10 @@ class HomepageManagerTest {
         UnknownHostException("DNS failed")
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["usedDns"]).isEqualTo(false)
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.usedDns).isEqualTo(false)
   }
 
   @Test
@@ -101,9 +96,10 @@ class HomepageManagerTest {
         UnknownHostException("DNS failed")
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["url"]).isEqualTo("http://1.2.3.4:3001")
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.url).isEqualTo("http://1.2.3.4:3001")
   }
 
   @Test
@@ -113,8 +109,9 @@ class HomepageManagerTest {
         UnknownHostException("DNS failed")
 
     val response = HomepageManager.getHomepageLink()
-    val body = response.entity as Map<*, *>
 
-    assertThat(body["url"]).isEqualTo("http://127.0.0.1:3001")
+    assertThat(response.isSuccess).isTrue
+    val result = response.getOrThrow()
+    assertThat(result.url).isEqualTo("http://127.0.0.1:3001")
   }
 }

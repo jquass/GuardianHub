@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.resource
 
+import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.HomepageManager
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
@@ -13,5 +14,5 @@ class HomepageResource {
   @GET
   @Path("/link")
   @Produces(MediaType.APPLICATION_JSON)
-  fun getHomepageLink(): Response = HomepageManager.getHomepageLink()
+  fun getHomepageLink(): Response = HomepageManager.getHomepageLink().toResponse()
 }

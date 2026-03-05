@@ -4,6 +4,7 @@ import com.jonquass.guardianhub.config.ServerFactory
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.manager.ConfigManager
 import com.jonquass.guardianhub.manager.DockerManager
+import com.jonquass.guardianhub.manager.ServiceStatusManager
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.PasswordHashManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
@@ -117,6 +118,7 @@ class GrizzlyServerExtension :
     ConfigManager.configFile = File(ConfigManager.DEFAULT_CONFIG_PATH)
     AuthManager.factoryPasswordFile = File(AuthManager.DEFAULT_FACTORY_PASSWORD_PATH)
     AuthManager.serialNumberFile = File(AuthManager.DEFAULT_SERIAL_NUMBER_PATH)
+    ServiceStatusManager.tasks.clear()
   }
 
   private fun writeTestFixtures() {

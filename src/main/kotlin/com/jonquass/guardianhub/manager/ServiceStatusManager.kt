@@ -10,7 +10,7 @@ import java.util.concurrent.Executors
 object ServiceStatusManager : Loggable {
   private val logger = logger()
   private val executor = Executors.newFixedThreadPool(2)
-  private val tasks = ConcurrentHashMap<String, ServiceStatusResponse>()
+  internal val tasks = ConcurrentHashMap<String, ServiceStatusResponse>()
 
   fun restartServicesAsync(services: List<String>): String {
     val taskId = UUID.randomUUID().toString()

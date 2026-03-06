@@ -77,10 +77,10 @@ object ConfigManager : Loggable {
               categories = categoriesWithEntries,
               entries = entries,
           )
-      Result.Success(configResponse)
+      Result.success(configResponse)
     } catch (e: Exception) {
       logger.error("Failed to read config: {}", e.message, e)
-      Result.Error("Failed to read config: ${e.message}")
+      Result.error("Failed to read config: ${e.message}")
     }
   }
 
@@ -124,11 +124,11 @@ object ConfigManager : Loggable {
 
       val parts = trimmed.split("=", limit = 2)
       if (parts.size == 2 && parts[0].trim() == key.name) {
-        return Result.Success(getValue(parts[1]))
+        return Result.success(getValue(parts[1]))
       }
     }
 
-    return Result.Error("No value found in .env file for " + key.name)
+    return Result.error("No value found in .env file for " + key.name)
   }
 
   private fun getValue(input: String): String {

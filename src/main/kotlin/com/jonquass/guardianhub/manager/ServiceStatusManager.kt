@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.ServiceStatusResponse
 import java.util.UUID
@@ -12,6 +13,7 @@ object ServiceStatusManager : Loggable {
   private val executor = Executors.newFixedThreadPool(2)
   internal val tasks = ConcurrentHashMap<String, ServiceStatusResponse>()
 
+  @ExcludeManagerCheck
   fun restartServicesAsync(services: List<String>): String {
     val taskId = UUID.randomUUID().toString()
 
@@ -110,5 +112,5 @@ object ServiceStatusManager : Loggable {
     logger.info("Service restart task completed: {}", taskId)
   }
 
-  fun getTaskStatus(taskId: String): Result<ServiceStatusResponse?> = Result.Success(tasks[taskId])
+  fun getTaskStatus(taskId: String): Result<ServiceStatusResponse?> = Result.success(tasks[taskId])
 }

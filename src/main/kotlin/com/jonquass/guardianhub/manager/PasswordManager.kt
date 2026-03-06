@@ -32,13 +32,13 @@ object PasswordManager : Loggable {
             request.password,
         )
     if (setPwdResult.isError) {
-      return Result.Error(
+      return Result.error(
           "Password updated in .env but failed to set in Pi-hole container. " +
               "Try manually: docker exec pihole pihole setpassword 'yourpassword'",
       )
     }
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "Pi-hole password updated successfully",
@@ -57,7 +57,7 @@ object PasswordManager : Loggable {
 
     val hash =
         hashWireGuardPassword(request.password)
-            ?: return Result.Error("Failed to generate WireGuard password hash")
+            ?: return Result.error("Failed to generate WireGuard password hash")
 
     ConfigManager.upsertConfig(Env.WIREGUARD_PASSWORD_HASH, hash)
     logger.info("Updated .env file")
@@ -65,7 +65,7 @@ object PasswordManager : Loggable {
     val recreated = DockerManager.recreateContainer("wireguard")
     logger.info("WireGuard recreated: {}", recreated)
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "WireGuard password updated successfully",
@@ -76,47 +76,47 @@ object PasswordManager : Loggable {
 
   fun updateNpmPassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
     if (request.password.isBlank()) {
-      return Result.Error("Password cannot be empty", Response.Status.BAD_REQUEST)
+      return Result.error("Password cannot be empty", Response.Status.BAD_REQUEST)
     }
     if (request.password.length < 8) {
-      return Result.Error("Password must be at least 8 characters", Response.Status.BAD_REQUEST)
+      return Result.error("Password must be at least 8 characters", Response.Status.BAD_REQUEST)
     }
 
     logger.info("Updating NPM password...")
 
     val currentEmailResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
-    if (currentEmailResult is Result.Error) {
+    if (currentEmailResult.isError) {
       return currentEmailResult.errOrThrow()
     }
     val currentEmail = currentEmailResult.getOrThrow()
 
     val currentPasswordResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD)
-    if (currentPasswordResult is Result.Error) {
+    if (currentPasswordResult.isError) {
       return currentPasswordResult.errOrThrow()
     }
     val currentPassword = currentPasswordResult.getOrThrow()
 
     val token =
         fetchNpmToken(currentEmail, currentPassword)
-            ?: return Result.Error(
+            ?: return Result.error(
                 "Failed to authenticate with NPM. The email in NPM must match NPM_ADMIN_EMAIL ($currentEmail).",
                 Response.Status.UNAUTHORIZED,
             )
 
     val userId =
         fetchNpmUserId(token, currentEmail)
-            ?: return Result.Error(
+            ?: return Result.error(
                 "Failed to find NPM user with email: $currentEmail.",
             )
 
     val updateSuccess = updateNpmUserPassword(userId, token, currentPassword, request.password)
     if (!updateSuccess) {
-      return Result.Error("Failed to update NPM password via API")
+      return Result.error("Failed to update NPM password via API")
     }
 
     ConfigManager.upsertConfig(Env.NPM_ADMIN_PASSWORD, request.password)
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "NPM password updated successfully",

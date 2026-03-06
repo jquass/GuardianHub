@@ -31,6 +31,6 @@ object HomepageManager : Loggable {
           val ip = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP).getOrElse("127.0.0.1")
           "http://$ip:3001"
         }
-    return Result.Success(HomepageLinkResponse(url, useDns))
+    return Result.success(HomepageLinkResponse(url, useDns))
   }
 }

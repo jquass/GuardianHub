@@ -88,7 +88,7 @@ class GrizzlyServerExtension :
     SessionManager.invalidateSessions()
     mockkObject(DockerManager)
 
-    every { DockerManager.exec(*anyVararg<String>()) } returns Result.Success(null)
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
     every { DockerManager.recreateContainer(any()) } returns true
     every { DockerManager.execWithOutput(*anyVararg()) } answers
         {
@@ -96,17 +96,17 @@ class GrizzlyServerExtension :
           when {
             // NPM token fetch
             args.any { it.toString().contains("/api/tokens") } ->
-                Result.Success("""{"token":"mock-npm-token","expires":"2025-01-01"}""")
+                Result.success("""{"token":"mock-npm-token","expires":"2025-01-01"}""")
             // NPM user list
             args.any { it.toString().contains("/api/users") && !it.toString().contains("/auth") } ->
-                Result.Success("""[{"id":1,"email":"admin@example.com"}]""")
+                Result.success("""[{"id":1,"email":"admin@example.com"}]""")
             // NPM password update
-            args.any { it.toString().contains("/auth") } -> Result.Success("true")
+            args.any { it.toString().contains("/auth") } -> Result.success("true")
             // WireGuard password hash
             args.any { it.toString().contains("wgpw") } ->
-                Result.Success("PASSWORD_HASH=\$2a\$10\$mockedhash")
+                Result.success("PASSWORD_HASH=\$2a\$10\$mockedhash")
             // Default
-            else -> Result.Success("ok")
+            else -> Result.success("ok")
           }
         }
   }

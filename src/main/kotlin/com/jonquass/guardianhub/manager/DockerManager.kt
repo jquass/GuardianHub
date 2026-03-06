@@ -1,22 +1,23 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 
 object DockerManager : Loggable {
   private val logger = logger()
 
-  fun exec(vararg args: String): Result<Nothing?> =
+  fun exec(vararg args: String): Result<Unit> =
       try {
         val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
         val code = process.waitFor()
         if (code != 0) {
-          return Result.Error("Non-zero exit code $code")
+          return Result.error("Non-zero exit code $code")
         }
-        Result.Success(null)
+        Result.success()
       } catch (e: Exception) {
         logger.error("Exception while executing args {}: {}", args, e.message, e)
-        Result.Error("Exception while executing args")
+        Result.error("Exception while executing args")
       }
 
   fun execWithOutput(vararg args: String): Result<String> =
@@ -24,14 +25,15 @@ object DockerManager : Loggable {
         val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
         val output =
             process.inputStream.bufferedReader().readLine()?.trim()
-                ?: return Result.Error("No output while executing args")
+                ?: return Result.error("No output while executing args")
         process.waitFor()
-        Result.Success(output)
+        Result.success(output)
       } catch (e: Exception) {
         logger.error("Exception while executing args {}: {}", args, e.message, e)
-        Result.Error("Exception while executing args")
+        Result.error("Exception while executing args")
       }
 
+  @ExcludeManagerCheck
   fun recreateContainer(serviceName: String): Boolean =
       try {
         logger.info("Recreating service {} to reload environment...", serviceName)

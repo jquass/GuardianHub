@@ -154,21 +154,21 @@ class ConfigManagerTest {
   }
 
   @Test
-  fun `getRawConfigValue should return null for missing key`() {
+  fun `getRawConfigValue should return error for missing key`() {
     tempFile.writeText("GUARDIAN_IP=0.0.0.1\n")
 
     val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
 
-    assertThat(result).isNull()
+    assertThat(result.isError).isTrue()
   }
 
   @Test
-  fun `getRawConfigValue should return null for empty file`() {
+  fun `getRawConfigValue should return error for empty file`() {
     tempFile.writeText("")
 
     val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
 
-    assertThat(result).isNull()
+    assertThat(result.isError).isTrue()
   }
 
   @Test

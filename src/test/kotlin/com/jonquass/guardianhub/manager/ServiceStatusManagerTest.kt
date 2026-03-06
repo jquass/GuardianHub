@@ -17,7 +17,7 @@ class ServiceStatusManagerTest {
   @BeforeEach
   fun setUp() {
     mockkObject(DockerManager)
-    every { DockerManager.exec(*anyVararg<String>()) } returns Result.Success(null)
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
   }
 
   @AfterEach
@@ -45,7 +45,7 @@ class ServiceStatusManagerTest {
     every { DockerManager.exec(*anyVararg<String>()) } answers
         {
           Thread.sleep(200)
-          Result.Success(null)
+          Result.success()
         }
 
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))

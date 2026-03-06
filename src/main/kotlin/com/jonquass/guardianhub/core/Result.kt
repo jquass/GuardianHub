@@ -9,9 +9,20 @@ sealed class Result<out T> {
   ) : Result<T>()
 
   data class Error(
-      val message: String? = null,
-      val code: Response.Status = Response.Status.INTERNAL_SERVER_ERROR,
+      val message: String?,
+      val code: Response.Status,
   ) : Result<Nothing>()
+
+  companion object {
+    fun success(): Result<Unit> = Success(Unit)
+
+    fun <T> success(data: T): Result<T> = Success(data)
+
+    fun error(
+        message: String? = null,
+        code: Response.Status = Response.Status.INTERNAL_SERVER_ERROR,
+    ): Result<Nothing> = Error(message, code)
+  }
 
   val isSuccess
     get() = this is Success

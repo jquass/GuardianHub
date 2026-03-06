@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager.auth
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.auth.LoginRequest
@@ -26,9 +27,9 @@ object AuthManager : Loggable {
 
     if (isValid) {
       val token = SessionManager.createSession()
-      return Result.Success(LoginResponse(success = true, token = token))
+      return Result.success(LoginResponse(success = true, token = token))
     } else {
-      return Result.Error("Invalid password", Response.Status.UNAUTHORIZED)
+      return Result.error("Invalid password", Response.Status.UNAUTHORIZED)
     }
   }
 
@@ -40,7 +41,7 @@ object AuthManager : Loggable {
         )
 
     if (success) {
-      return Result.Success(
+      return Result.success(
           mapOf(
               "success" to true,
               "message" to "Password reset to factory default",
@@ -48,7 +49,7 @@ object AuthManager : Loggable {
       )
     }
 
-    return Result.Error(
+    return Result.error(
         "Invalid factory password or serial number",
         Response.Status.BAD_REQUEST,
     )
@@ -60,7 +61,7 @@ object AuthManager : Loggable {
   ): Result<Map<String, Any>> {
     val isAuthValid = isAuthValid(authHeader)
     if (!isAuthValid) {
-      return Result.Error("Unauthorized", Response.Status.UNAUTHORIZED)
+      return Result.error("Unauthorized", Response.Status.UNAUTHORIZED)
     }
 
     val success =
@@ -70,7 +71,7 @@ object AuthManager : Loggable {
             request.serialNumber,
         )
     if (success) {
-      return Result.Success(
+      return Result.success(
           mapOf(
               "success" to true,
               "message" to "Login password changed successfully",
@@ -78,7 +79,7 @@ object AuthManager : Loggable {
       )
     }
 
-    return Result.Error(
+    return Result.error(
         "Failed to change password. Check current password, serial number, and ensure new password is at least 8 characters.",
         Response.Status.BAD_REQUEST,
     )
@@ -89,14 +90,15 @@ object AuthManager : Loggable {
     if (token != null) {
       SessionManager.invalidateSession(token)
     }
-    return Result.Success(mapOf("success" to true))
+    return Result.success(mapOf("success" to true))
   }
 
   fun checkAuth(authHeader: String?): Result<Map<String, Any>> {
     val isAuthValid = isAuthValid(authHeader)
-    return Result.Success(mapOf("authenticated" to isAuthValid))
+    return Result.success(mapOf("authenticated" to isAuthValid))
   }
 
+  @ExcludeManagerCheck
   fun getToken(authHeader: String?): String? = authHeader?.removePrefix("Bearer ")?.trim()
 
   private fun isAuthValid(authHeader: String?): Boolean {

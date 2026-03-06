@@ -6,6 +6,7 @@ import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import com.jonquass.guardianhub.core.api.UpdatePasswordResponse
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.validator.PasswordValidator
 import jakarta.ws.rs.core.Response
 
@@ -83,17 +84,17 @@ object PasswordManager : Loggable {
 
     logger.info("Updating NPM password...")
 
-    val currentEmail =
-        ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
-            ?: return Result.Error(
-                "NPM credentials not configured. Please add NPM_ADMIN_EMAIL and NPM_ADMIN_PASSWORD to .env",
-            )
+    val currentEmailResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
+    if (currentEmailResult is Result.Error) {
+      return currentEmailResult.errOrThrow()
+    }
+    val currentEmail = currentEmailResult.getOrThrow()
 
-    val currentPassword =
-        ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD)
-            ?: return Result.Error(
-                "NPM credentials not configured. Please add NPM_ADMIN_EMAIL and NPM_ADMIN_PASSWORD to .env",
-            )
+    val currentPasswordResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
+    if (currentPasswordResult is Result.Error) {
+      return currentEmailResult.errOrThrow()
+    }
+    val currentPassword = currentPasswordResult.getOrThrow()
 
     val token =
         fetchNpmToken(currentEmail, currentPassword)

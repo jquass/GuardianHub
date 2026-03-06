@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.errOrThrow
@@ -80,8 +81,9 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when NPM email not configured`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns null
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "password"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns Result.Error("")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("password")
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -91,8 +93,9 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when NPM password not configured`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns null
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns Result.Error("")
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -158,8 +161,10 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when token fetch fails`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns Pair(1, null)
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
@@ -170,8 +175,10 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when token is not present in response`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
         Pair(0, """{"error":"invalid credentials"}""")
 
@@ -183,8 +190,10 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when user id fetch fails`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
             Pair(0, """{"token":"abc123"}"""),
@@ -199,8 +208,10 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when password update api returns false`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
             Pair(0, """{"token":"abc123"}"""),
@@ -216,8 +227,10 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return success when all steps succeed`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns "admin@example.com"
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns "currentPassword1!"
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.Success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
             Pair(0, """{"token":"abc123"}"""),

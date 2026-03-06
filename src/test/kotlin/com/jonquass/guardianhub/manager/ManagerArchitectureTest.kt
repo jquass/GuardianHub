@@ -10,7 +10,7 @@ import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition
 
 @AnalyzeClasses(packages = ["com.jonquass.guardianhub.manager"])
-object ArchitectureTest {
+object ManagerArchitectureTest {
   @ArchTest
   val managers_must_return_result: ArchRule? =
       ArchRuleDefinition.methods()

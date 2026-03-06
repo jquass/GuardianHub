@@ -114,7 +114,7 @@ object ConfigManager : Loggable {
   }
 
   /** Read a raw config value without masking (for internal use) */
-  fun getRawConfigValue(key: Env): String? {
+  fun getRawConfigValue(key: Env): Result<String> {
     validateConfig()
     configFile.readLines().forEach { line ->
       val trimmed = line.trim()
@@ -124,11 +124,11 @@ object ConfigManager : Loggable {
 
       val parts = trimmed.split("=", limit = 2)
       if (parts.size == 2 && parts[0].trim() == key.name) {
-        return getValue(parts[1])
+        return Result.Success(getValue(parts[1]))
       }
     }
 
-    return null
+    return Result.Error("No value found in .env file for " + key.name)
   }
 
   private fun getValue(input: String): String {

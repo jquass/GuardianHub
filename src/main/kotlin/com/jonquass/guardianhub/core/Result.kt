@@ -26,6 +26,12 @@ fun <T> Result<T>.getOrThrow(): T =
       is Result.Error -> throw ResultException(this.message, this.code)
     }
 
+fun <T> Result<T>.getOrElse(alternate: T): T =
+    when (this) {
+      is Result.Success -> this.data
+      is Result.Error -> alternate
+    }
+
 fun <T> Result<T>.errOrThrow(): Result.Error =
     when (this) {
       is Result.Success -> throw ResultException("errOrThrow called on Result.Success")

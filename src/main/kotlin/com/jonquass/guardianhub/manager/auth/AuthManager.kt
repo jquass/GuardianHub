@@ -7,6 +7,7 @@ import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.LoginResponse
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
 import com.jonquass.guardianhub.core.config.Env
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.ConfigManager
 import jakarta.ws.rs.core.Response
 import java.io.File
@@ -104,12 +105,12 @@ object AuthManager : Loggable {
   }
 
   private fun validatePassword(password: String): Boolean {
-    val loginPasswordHash = ConfigManager.getRawConfigValue(Env.LOGIN_PASSWORD)
-    if (loginPasswordHash.isNullOrEmpty()) {
-      logger.warn("Login password hash not found in .env")
+    val loginPasswordHashResult = ConfigManager.getRawConfigValue(Env.LOGIN_PASSWORD)
+    if (loginPasswordHashResult is Result.Error) {
       return false
     }
 
+    val loginPasswordHash = loginPasswordHashResult.getOrThrow()
     return PasswordHashManager.verifyHash(password, loginPasswordHash)
   }
 

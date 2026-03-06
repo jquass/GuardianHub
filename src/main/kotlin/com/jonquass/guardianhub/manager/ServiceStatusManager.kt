@@ -73,7 +73,7 @@ object ServiceStatusManager : Loggable {
               servicesRestarted = successfulRestarts.toList(),
               servicesFailed = failedRestarts.toList(),
           )
-      val success =
+      val result =
           DockerManager.exec(
               "/usr/bin/docker",
               "compose",
@@ -83,7 +83,7 @@ object ServiceStatusManager : Loggable {
               "--no-deps",
               service,
           )
-      if (success) {
+      if (result.isSuccess) {
         successfulRestarts.add(service)
       }
     }

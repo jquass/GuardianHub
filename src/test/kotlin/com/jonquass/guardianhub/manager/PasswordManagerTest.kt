@@ -33,7 +33,7 @@ class PasswordManagerTest {
 
   @Test
   fun `updatePiholePassword should return success when password is valid and pihole update succeeds`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.Success(null)
 
     val result = PasswordManager.updatePiholePassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -45,7 +45,7 @@ class PasswordManagerTest {
 
   @Test
   fun `updatePiholePassword should return error when pihole update fails`() {
-    every { DockerManager.exec(*anyVararg<String>()) } returns false
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.Error()
 
     val result = PasswordManager.updatePiholePassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -81,7 +81,7 @@ class PasswordManagerTest {
 
   @Test
   fun `updateNpmPassword should return error when NPM email not configured`() {
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns Result.Error("")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns Result.Error()
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
         Result.Success("password")
 
@@ -95,7 +95,7 @@ class PasswordManagerTest {
   fun `updateNpmPassword should return error when NPM password not configured`() {
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
         Result.Success("admin@example.com")
-    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns Result.Error("")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns Result.Error()
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -114,7 +114,7 @@ class PasswordManagerTest {
   @Test
   fun `updateWireGuardPassword should return success when hash and recreate succeed`() {
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
-        Pair(0, "PASSWORD_HASH=hashed_value")
+        Result.Success("PASSWORD_HASH=hashed_value")
     every { DockerManager.recreateContainer(any()) } returns true
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
@@ -128,7 +128,7 @@ class PasswordManagerTest {
   @Test
   fun `updateWireGuardPassword should return success with serviceRestarted false when recreate fails`() {
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
-        Pair(0, "PASSWORD_HASH=hashed_value")
+        Result.Success("PASSWORD_HASH=hashed_value")
     every { DockerManager.recreateContainer(any()) } returns false
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
@@ -139,7 +139,7 @@ class PasswordManagerTest {
 
   @Test
   fun `updateWireGuardPassword should return error when hash generation fails`() {
-    every { DockerManager.execWithOutput(*anyVararg<String>()) } returns Pair(1, null)
+    every { DockerManager.execWithOutput(*anyVararg<String>()) } returns Result.Error()
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -151,7 +151,7 @@ class PasswordManagerTest {
   @Test
   fun `updateWireGuardPassword should return error when hash output cannot be parsed`() {
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
-        Pair(0, "UNEXPECTED_OUTPUT=something")
+        Result.Success("UNEXPECTED_OUTPUT=something")
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -165,7 +165,7 @@ class PasswordManagerTest {
         Result.Success("admin@example.com")
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
         Result.Success("currentPassword1!")
-    every { DockerManager.execWithOutput(*anyVararg<String>()) } returns Pair(1, null)
+    every { DockerManager.execWithOutput(*anyVararg<String>()) } returns Result.Error()
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -180,7 +180,7 @@ class PasswordManagerTest {
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
         Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
-        Pair(0, """{"error":"invalid credentials"}""")
+        Result.Success("""{"error":"invalid credentials"}""")
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -196,8 +196,8 @@ class PasswordManagerTest {
         Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
-            Pair(0, """{"token":"abc123"}"""),
-            Pair(1, null),
+            Result.Success("""{"token":"abc123"}"""),
+            Result.Error(),
         )
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
@@ -214,9 +214,9 @@ class PasswordManagerTest {
         Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
-            Pair(0, """{"token":"abc123"}"""),
-            Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),
-            Pair(0, "false"),
+            Result.Success("""{"token":"abc123"}"""),
+            Result.Success("""[{"id":1,"email":"admin@example.com"}]"""),
+            Result.Success("false"),
         )
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
@@ -233,9 +233,9 @@ class PasswordManagerTest {
         Result.Success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
         listOf(
-            Pair(0, """{"token":"abc123"}"""),
-            Pair(0, """[{"id":1,"email":"admin@example.com"}]"""),
-            Pair(0, "true"),
+            Result.Success("""{"token":"abc123"}"""),
+            Result.Success("""[{"id":1,"email":"admin@example.com"}]"""),
+            Result.Success("true"),
         )
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))

@@ -1,29 +1,35 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.Result
 
 object DockerManager : Loggable {
   private val logger = logger()
 
-  fun exec(vararg args: String): Boolean =
+  fun exec(vararg args: String): Result<Nothing?> =
       try {
         val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
-
-        process.waitFor() == 0
+        val code = process.waitFor()
+        if (code != 0) {
+          return Result.Error("Non-zero exit code $code")
+        }
+        Result.Success(null)
       } catch (e: Exception) {
         logger.error("Exception while executing args {}: {}", args, e.message, e)
-        false
+        Result.Error("Exception while executing args")
       }
 
-  fun execWithOutput(vararg args: String): Pair<Int, String?> =
+  fun execWithOutput(vararg args: String): Result<String> =
       try {
         val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
-        val output = process.inputStream.bufferedReader().readLine()?.trim()
-        val exitCode = process.waitFor()
-        Pair(exitCode, output)
+        val output =
+            process.inputStream.bufferedReader().readLine()?.trim()
+                ?: return Result.Error("No output while executing args")
+        process.waitFor()
+        Result.Success(output)
       } catch (e: Exception) {
         logger.error("Exception while executing args {}: {}", args, e.message, e)
-        Pair(-1, null)
+        Result.Error("Exception while executing args")
       }
 
   fun recreateContainer(serviceName: String): Boolean =

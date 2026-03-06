@@ -9,7 +9,7 @@ sealed class Result<out T> {
   ) : Result<T>()
 
   data class Error(
-      val message: String,
+      val message: String? = null,
       val code: Response.Status = Response.Status.INTERNAL_SERVER_ERROR,
   ) : Result<Nothing>()
 
@@ -23,7 +23,7 @@ sealed class Result<out T> {
 fun <T> Result<T>.getOrThrow(): T =
     when (this) {
       is Result.Success -> this.data
-      is Result.Error -> throw ResultException(this.message, this.code)
+      is Result.Error -> throw ResultException(this.message ?: "Error Result", this.code)
     }
 
 fun <T> Result<T>.getOrElse(alternate: T): T =
@@ -41,8 +41,8 @@ fun <T> Result<T>.errOrThrow(): Result.Error =
 fun <T> Result<T>.toResponse(): Response =
     when (this) {
       is Result.Success -> Response.ok(this.data).build()
-      is Result.Error ->
-          Response.status(this.code)
-              .entity(mapOf("status" to "error", "message" to this.message))
-              .build()
+      is Result.Error -> {
+        val message = this.message ?: "Error Result"
+        Response.status(this.code).entity(mapOf("status" to "error", "message" to message)).build()
+      }
     }

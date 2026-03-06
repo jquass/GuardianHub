@@ -10,7 +10,7 @@ import java.net.UnknownHostException
 object HomepageManager : Loggable {
   private val logger = logger()
 
-  var dnsResolver: (String) -> Boolean = { hostname ->
+  internal var dnsResolver: (String) -> Boolean = { hostname ->
     try {
       InetAddress.getByName(hostname)
       true

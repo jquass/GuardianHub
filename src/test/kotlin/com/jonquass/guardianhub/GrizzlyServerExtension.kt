@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub
 
 import com.jonquass.guardianhub.config.ServerFactory
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.manager.ConfigManager
 import com.jonquass.guardianhub.manager.DockerManager
@@ -87,25 +88,25 @@ class GrizzlyServerExtension :
     SessionManager.invalidateSessions()
     mockkObject(DockerManager)
 
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
-    every { DockerManager.recreateContainer(any()) } returns true
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
+    every { DockerManager.recreateContainer(any()) } returns Result.success()
     every { DockerManager.execWithOutput(*anyVararg()) } answers
         {
           val args = args.first() as Array<*>
           when {
             // NPM token fetch
             args.any { it.toString().contains("/api/tokens") } ->
-                Pair(0, """{"token":"mock-npm-token","expires":"2025-01-01"}""")
+                Result.success("""{"token":"mock-npm-token","expires":"2025-01-01"}""")
             // NPM user list
             args.any { it.toString().contains("/api/users") && !it.toString().contains("/auth") } ->
-                Pair(0, """[{"id":1,"email":"admin@example.com"}]""")
+                Result.success("""[{"id":1,"email":"admin@example.com"}]""")
             // NPM password update
-            args.any { it.toString().contains("/auth") } -> Pair(0, "true")
+            args.any { it.toString().contains("/auth") } -> Result.success("true")
             // WireGuard password hash
             args.any { it.toString().contains("wgpw") } ->
-                Pair(0, "PASSWORD_HASH=\$2a\$10\$mockedhash")
+                Result.success("PASSWORD_HASH=\$2a\$10\$mockedhash")
             // Default
-            else -> Pair(0, "ok")
+            else -> Result.success("ok")
           }
         }
   }

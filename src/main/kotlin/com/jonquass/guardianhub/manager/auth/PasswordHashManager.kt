@@ -2,11 +2,13 @@ package com.jonquass.guardianhub.manager.auth
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 
 object PasswordHashManager : Loggable {
   private val logger = logger()
 
   /** Verify a password against a bcrypt hash Supports $2a$, $2b$, $2x$, and $2y$ formats */
+  @ExcludeManagerCheck
   fun verifyHash(
       plainText: String,
       hash: String,
@@ -20,6 +22,7 @@ object PasswordHashManager : Loggable {
       }
 
   /** Hash a password using bcrypt */
+  @ExcludeManagerCheck
   fun hashPassword(plainText: String): String =
       try {
         BCrypt.withDefaults().hashToString(10, plainText.toCharArray())

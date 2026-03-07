@@ -6,6 +6,7 @@ import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import com.jonquass.guardianhub.core.api.UpdatePasswordResponse
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.validator.PasswordValidator
 import jakarta.ws.rs.core.Response
 
@@ -21,7 +22,7 @@ object PasswordManager : Loggable {
     logger.info("Updating Pi-hole password")
     ConfigManager.upsertConfig(Env.PIHOLE_PASSWORD, request.password)
 
-    val setPwdSuccess =
+    val setPwdResult =
         DockerManager.exec(
             "/usr/bin/docker",
             "exec",
@@ -30,14 +31,14 @@ object PasswordManager : Loggable {
             "setpassword",
             request.password,
         )
-    if (!setPwdSuccess) {
-      return Result.Error(
+    if (setPwdResult.isError) {
+      return Result.error(
           "Password updated in .env but failed to set in Pi-hole container. " +
               "Try manually: docker exec pihole pihole setpassword 'yourpassword'",
       )
     }
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "Pi-hole password updated successfully",
@@ -56,15 +57,15 @@ object PasswordManager : Loggable {
 
     val hash =
         hashWireGuardPassword(request.password)
-            ?: return Result.Error("Failed to generate WireGuard password hash")
+            ?: return Result.error("Failed to generate WireGuard password hash")
 
     ConfigManager.upsertConfig(Env.WIREGUARD_PASSWORD_HASH, hash)
     logger.info("Updated .env file")
 
-    val recreated = DockerManager.recreateContainer("wireguard")
+    val recreated = DockerManager.recreateContainer("wireguard").isSuccess
     logger.info("WireGuard recreated: {}", recreated)
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "WireGuard password updated successfully",
@@ -75,47 +76,47 @@ object PasswordManager : Loggable {
 
   fun updateNpmPassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
     if (request.password.isBlank()) {
-      return Result.Error("Password cannot be empty", Response.Status.BAD_REQUEST)
+      return Result.error("Password cannot be empty", Response.Status.BAD_REQUEST)
     }
     if (request.password.length < 8) {
-      return Result.Error("Password must be at least 8 characters", Response.Status.BAD_REQUEST)
+      return Result.error("Password must be at least 8 characters", Response.Status.BAD_REQUEST)
     }
 
     logger.info("Updating NPM password...")
 
-    val currentEmail =
-        ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
-            ?: return Result.Error(
-                "NPM credentials not configured. Please add NPM_ADMIN_EMAIL and NPM_ADMIN_PASSWORD to .env",
-            )
+    val currentEmailResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL)
+    if (currentEmailResult.isError) {
+      return currentEmailResult.errOrThrow()
+    }
+    val currentEmail = currentEmailResult.getOrThrow()
 
-    val currentPassword =
-        ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD)
-            ?: return Result.Error(
-                "NPM credentials not configured. Please add NPM_ADMIN_EMAIL and NPM_ADMIN_PASSWORD to .env",
-            )
+    val currentPasswordResult = ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD)
+    if (currentPasswordResult.isError) {
+      return currentPasswordResult.errOrThrow()
+    }
+    val currentPassword = currentPasswordResult.getOrThrow()
 
     val token =
         fetchNpmToken(currentEmail, currentPassword)
-            ?: return Result.Error(
+            ?: return Result.error(
                 "Failed to authenticate with NPM. The email in NPM must match NPM_ADMIN_EMAIL ($currentEmail).",
                 Response.Status.UNAUTHORIZED,
             )
 
     val userId =
         fetchNpmUserId(token, currentEmail)
-            ?: return Result.Error(
+            ?: return Result.error(
                 "Failed to find NPM user with email: $currentEmail.",
             )
 
     val updateSuccess = updateNpmUserPassword(userId, token, currentPassword, request.password)
     if (!updateSuccess) {
-      return Result.Error("Failed to update NPM password via API")
+      return Result.error("Failed to update NPM password via API")
     }
 
     ConfigManager.upsertConfig(Env.NPM_ADMIN_PASSWORD, request.password)
 
-    return Result.Success(
+    return Result.success(
         UpdatePasswordResponse(
             status = "success",
             message = "NPM password updated successfully",
@@ -129,7 +130,7 @@ object PasswordManager : Loggable {
       password: String,
   ): String? {
     val authJson = """{"identity":"$email","secret":"$password"}"""
-    val output =
+    val result =
         DockerManager.execWithOutput(
             "/usr/bin/curl",
             "-s",
@@ -141,16 +142,19 @@ object PasswordManager : Loggable {
             "-d",
             authJson,
         )
-    if (output.first != 0 || output.second.isNullOrEmpty()) return null
+    if (result.isError) {
+      return null
+    }
+    val output = result.getOrThrow()
 
-    return """"token":"([^"]+)"""".toRegex().find(output.second!!)?.groupValues?.get(1)
+    return """"token":"([^"]+)"""".toRegex().find(output)?.groupValues?.get(1)
   }
 
   private fun fetchNpmUserId(
       token: String,
       email: String,
   ): String? {
-    val output =
+    val result =
         DockerManager.execWithOutput(
             "/usr/bin/curl",
             "-s",
@@ -160,11 +164,14 @@ object PasswordManager : Loggable {
             "-H",
             "Authorization: Bearer $token",
         )
-    if (output.first != 0 || output.second.isNullOrEmpty()) return null
+    if (result.isError) {
+      return null
+    }
+    val output = result.getOrThrow()
 
     return """"id":(\d+)[^}]*"email":"${Regex.escape(email)}"""
         .toRegex(RegexOption.DOT_MATCHES_ALL)
-        .find(output.second!!)
+        .find(output)
         ?.groupValues
         ?.get(1)
   }
@@ -176,7 +183,7 @@ object PasswordManager : Loggable {
       newPassword: String,
   ): Boolean {
     val updateJson = """{"type":"password","current":"$currentPassword","secret":"$newPassword"}"""
-    val output =
+    val result =
         DockerManager.execWithOutput(
             "/usr/bin/curl",
             "-s",
@@ -190,13 +197,16 @@ object PasswordManager : Loggable {
             "-d",
             updateJson,
         )
-    if (output.first != 0 || output.second.isNullOrEmpty()) return false
+    if (result.isError) {
+      return false
+    }
+    val output = result.getOrThrow()
 
-    return output.second!!.trim() == "true"
+    return output.trim() == "true"
   }
 
   private fun hashWireGuardPassword(password: String): String? {
-    val output =
+    val result =
         DockerManager.execWithOutput(
             "docker",
             "run",
@@ -205,8 +215,11 @@ object PasswordManager : Loggable {
             "wgpw",
             password,
         )
-    if (output.first != 0 || output.second.isNullOrEmpty()) return null
+    if (result.isError) {
+      return null
+    }
+    val output = result.getOrThrow()
 
-    return Regex("PASSWORD_HASH=(.*)").find(output.second!!)?.groupValues?.get(1)
+    return Regex("PASSWORD_HASH=(.*)").find(output)?.groupValues?.get(1)
   }
 }

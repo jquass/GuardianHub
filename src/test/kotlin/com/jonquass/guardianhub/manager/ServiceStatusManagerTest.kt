@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.mockkObject
@@ -16,7 +17,7 @@ class ServiceStatusManagerTest {
   @BeforeEach
   fun setUp() {
     mockkObject(DockerManager)
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
   }
 
   @AfterEach
@@ -44,7 +45,7 @@ class ServiceStatusManagerTest {
     every { DockerManager.exec(*anyVararg<String>()) } answers
         {
           Thread.sleep(200)
-          true
+          Result.success()
         }
 
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))

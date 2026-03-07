@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.TimezoneResponse
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
@@ -17,8 +18,9 @@ object TimezoneManager : Loggable {
   private val servicesToRestart = listOf("cloudflared", "pihole")
 
   fun getTimezonesResult(): Result<TimezoneResponse> =
-      Result.Success(TimezoneResponse(sortedTimezones))
+      Result.success(TimezoneResponse(sortedTimezones))
 
+  @ExcludeManagerCheck
   fun isValidTimezone(timezone: String): Boolean = validTimezones.contains(timezone)
 
   fun updateTimezonesResult(request: UpdateTimezoneRequest): Result<Map<String, Any>> {
@@ -26,7 +28,7 @@ object TimezoneManager : Loggable {
       // Validate timezone is in the list of valid timezones
       if (!isValidTimezone(request.timezone)) {
         logger.warn("Invalid timezone attempted: {}", request.timezone)
-        return Result.Error(
+        return Result.error(
             "Invalid timezone: ${request.timezone}. Must be a valid timezone from the list.",
             Response.Status.BAD_REQUEST)
       }
@@ -34,7 +36,7 @@ object TimezoneManager : Loggable {
       logger.info("Updating timezone to: {}", request.timezone)
       ConfigManager.upsertConfig(Env.TZ, request.timezone)
       val taskId = ServiceStatusManager.restartServicesAsync(servicesToRestart)
-      Result.Success(
+      Result.success(
           mapOf(
               "status" to "success",
               "message" to "Timezone updated to ${request.timezone}. Services are restarting.",
@@ -42,7 +44,7 @@ object TimezoneManager : Loggable {
           ))
     } catch (e: Exception) {
       logger.error("Failed to update timezone: {}", e.message, e)
-      Result.Error("Failed to update timezone")
+      Result.error("Failed to update timezone")
     }
   }
 }

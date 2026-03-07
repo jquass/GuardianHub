@@ -27,7 +27,7 @@ class DockerManagerTest {
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } returns mockk { every { waitFor() } returns 0 } }
 
-    assertThat(DockerManager.exec("ps").isSuccess).isTrue()
+    assertThat(DockerManager.exec("ps").isSuccess).isTrue
   }
 
   @Test
@@ -36,7 +36,7 @@ class DockerManagerTest {
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } returns mockk { every { waitFor() } returns 1 } }
 
-    assertThat(DockerManager.exec("ps").isError).isTrue()
+    assertThat(DockerManager.exec("ps").isError).isTrue
   }
 
   @Test
@@ -45,7 +45,7 @@ class DockerManagerTest {
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
 
-    assertThat(DockerManager.exec("ps").isError).isTrue()
+    assertThat(DockerManager.exec("ps").isError).isTrue
   }
 
   // --- execWithOutput ---
@@ -126,7 +126,7 @@ class DockerManagerTest {
               }
         }
 
-    assertThat(DockerManager.recreateContainer("pihole")).isTrue()
+    assertThat(DockerManager.recreateContainer("pihole").isSuccess).isTrue
   }
 
   @Test
@@ -150,7 +150,7 @@ class DockerManagerTest {
             mockk(relaxed = true) { every { start() } returns failProcess },
         )
 
-    assertThat(DockerManager.recreateContainer("pihole")).isFalse()
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
   }
 
   @Test
@@ -159,6 +159,6 @@ class DockerManagerTest {
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
 
-    assertThat(DockerManager.recreateContainer("pihole")).isFalse()
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
   }
 }

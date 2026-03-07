@@ -115,7 +115,7 @@ class PasswordManagerTest {
   fun `updateWireGuardPassword should return success when hash and recreate succeed`() {
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
         Result.success("PASSWORD_HASH=hashed_value")
-    every { DockerManager.recreateContainer(any()) } returns true
+    every { DockerManager.recreateContainer(any()) } returns Result.success()
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
 
@@ -129,7 +129,7 @@ class PasswordManagerTest {
   fun `updateWireGuardPassword should return success with serviceRestarted false when recreate fails`() {
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
         Result.success("PASSWORD_HASH=hashed_value")
-    every { DockerManager.recreateContainer(any()) } returns false
+    every { DockerManager.recreateContainer(any()) } returns Result.error()
 
     val result = PasswordManager.updateWireGuardPassword(UpdatePasswordRequest("validPassword1!"))
 

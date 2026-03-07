@@ -1,7 +1,6 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.config.Loggable
-import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 
 object DockerManager : Loggable {
@@ -33,8 +32,7 @@ object DockerManager : Loggable {
         Result.error("Exception while executing args")
       }
 
-  @ExcludeManagerCheck
-  fun recreateContainer(serviceName: String): Boolean =
+  fun recreateContainer(serviceName: String): Result<Unit> =
       try {
         logger.info("Recreating service {} to reload environment...", serviceName)
         ProcessBuilder(
@@ -72,9 +70,12 @@ object DockerManager : Loggable {
         val output = upProcess.inputStream.bufferedReader().use { it.readText() }
         val exitCode = upProcess.waitFor()
         logger.info("Service recreate exit code: {}, output: {}", exitCode, output)
-        exitCode == 0
+        if (exitCode == 0) {
+          return Result.success()
+        }
+        return Result.error()
       } catch (e: Exception) {
         logger.error("Failed to restart {}: {}", serviceName, e.message, e)
-        false
+        return Result.error()
       }
 }

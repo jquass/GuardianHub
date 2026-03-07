@@ -89,7 +89,7 @@ class GrizzlyServerExtension :
     mockkObject(DockerManager)
 
     every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
-    every { DockerManager.recreateContainer(any()) } returns true
+    every { DockerManager.recreateContainer(any()) } returns Result.success()
     every { DockerManager.execWithOutput(*anyVararg()) } answers
         {
           val args = args.first() as Array<*>

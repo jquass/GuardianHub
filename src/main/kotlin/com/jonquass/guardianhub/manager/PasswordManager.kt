@@ -62,7 +62,7 @@ object PasswordManager : Loggable {
     ConfigManager.upsertConfig(Env.WIREGUARD_PASSWORD_HASH, hash)
     logger.info("Updated .env file")
 
-    val recreated = DockerManager.recreateContainer("wireguard")
+    val recreated = DockerManager.recreateContainer("wireguard").isSuccess
     logger.info("WireGuard recreated: {}", recreated)
 
     return Result.success(

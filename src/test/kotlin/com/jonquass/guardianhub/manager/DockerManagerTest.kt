@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.core.getOrThrow
+import com.jonquass.guardianhub.manager.DockerManager.DEFAULT_PROCESS_BUILDER_FACTORY
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -17,6 +18,7 @@ class DockerManagerTest {
   @AfterEach
   fun tearDown() {
     unmockkAll()
+    DockerManager.processBuilderFactory = DEFAULT_PROCESS_BUILDER_FACTORY
   }
 
   // --- exec ---
@@ -52,18 +54,14 @@ class DockerManagerTest {
 
   @Test
   fun `execWithOutput should return exit code and output on success`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) {
-          every { start() } returns
-              mockk {
-                every { inputStream } returns ByteArrayInputStream("some output".toByteArray())
-                every { waitFor() } returns 0
-              }
-        }
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream("some output".toByteArray())
+        every { waitFor() } returns 0
+      }
+    }
 
     val result = DockerManager.execWithOutput("ps")
-
     assertThat(result.isSuccess).isTrue
     assertThat(result.getOrThrow()).isEqualTo("some output")
   }
@@ -87,10 +85,8 @@ class DockerManagerTest {
   }
 
   @Test
-  fun `execWithOutput should return -1 and null when exception is thrown`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
+  fun `execWithOutput should return error when exception is thrown`() {
+    DockerManager.processBuilderFactory = { throw RuntimeException("docker not found") }
 
     val result = DockerManager.execWithOutput("ps")
     assertThat(result.isError).isTrue
@@ -98,15 +94,12 @@ class DockerManagerTest {
 
   @Test
   fun `execWithOutput should return null output when process produces no output`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) {
-          every { start() } returns
-              mockk {
-                every { inputStream } returns ByteArrayInputStream(ByteArray(0))
-                every { waitFor() } returns 0
-              }
-        }
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream(ByteArray(0))
+        every { waitFor() } returns 0
+      }
+    }
 
     val result = DockerManager.execWithOutput("ps")
     assertThat(result.isError).isTrue

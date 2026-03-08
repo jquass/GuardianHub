@@ -6,6 +6,12 @@ import com.jonquass.guardianhub.core.Result
 object DockerManager : Loggable {
   private val logger = logger()
 
+  internal val DEFAULT_PROCESS_BUILDER_FACTORY: (List<String>) -> Process = { args ->
+    ProcessBuilder(args).redirectErrorStream(true).start()
+  }
+
+  internal var processBuilderFactory = DEFAULT_PROCESS_BUILDER_FACTORY
+
   fun exec(vararg args: String): Result<Unit> =
       try {
         val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
@@ -21,7 +27,7 @@ object DockerManager : Loggable {
 
   fun execWithOutput(vararg args: String): Result<String> =
       try {
-        val process = ProcessBuilder("/usr/bin/docker", *args).redirectErrorStream(true).start()
+        val process = processBuilderFactory(listOf("/usr/bin/docker", *args))
         val output =
             process.inputStream.bufferedReader().readLine()?.trim()
                 ?: return Result.error("No output while executing args")

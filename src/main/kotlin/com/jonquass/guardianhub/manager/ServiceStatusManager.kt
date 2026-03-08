@@ -87,6 +87,8 @@ object ServiceStatusManager : Loggable {
           )
       if (result.isSuccess) {
         successfulRestarts.add(service)
+      } else {
+          failedRestarts.add(service)
       }
     }
 

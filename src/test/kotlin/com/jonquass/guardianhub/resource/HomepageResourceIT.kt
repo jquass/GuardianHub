@@ -18,69 +18,62 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(GrizzlyServerExtension::class)
 class HomepageResourceIT {
 
-  @ExtendWith(GrizzlyServerExtension::class)
-  class HomepageResourceIT {
-
-    @AfterEach
-    fun tearDown() {
-      HomepageManager.dnsResolver = { hostname ->
-        try {
-          InetAddress.getByName(hostname)
-          true
-        } catch (e: UnknownHostException) {
-          false
-        }
+  @AfterEach
+  fun tearDown() {
+    HomepageManager.dnsResolver = { hostname ->
+      try {
+        InetAddress.getByName(hostname)
+        true
+      } catch (e: UnknownHostException) {
+        false
       }
     }
+  }
 
-    @Test
-    fun `homepage link returns 401 with invalid credentials`() {
-      When { get("/api/homepage/link") } Then
-          {
-            statusCode(Response.Status.UNAUTHORIZED.statusCode)
-          }
-    }
+  @Test
+  fun `homepage link returns 401 with invalid credentials`() {
+    When { get("/api/homepage/link") } Then { statusCode(Response.Status.UNAUTHORIZED.statusCode) }
+  }
 
-    @Test
-    fun `homepage link returns 200 with dns success`() {
-      HomepageManager.dnsResolver = { true }
-      val token = GrizzlyServerExtension.loginAndGetToken()
+  @Test
+  fun `homepage link returns 200 with dns success`() {
+    HomepageManager.dnsResolver = { true }
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
-      val response =
-          Given { header("Authorization", "Bearer $token") } When
-              {
-                get("/api/homepage/link")
-              } Then
-              {
-                statusCode(Response.Status.OK.statusCode)
-              } Extract
-              {
-                `as`(HomepageLinkResponse::class.java)
-              }
+    val response =
+        Given { header("Authorization", "Bearer $token") } When
+            {
+              get("/api/homepage/link")
+            } Then
+            {
+              statusCode(Response.Status.OK.statusCode)
+            } Extract
+            {
+              `as`(HomepageLinkResponse::class.java)
+            }
 
-      assertThat(response.usedDns).isEqualTo(true)
-      assertThat(response.url).isEqualTo("http://homepage.guardian.home")
-    }
+    assertThat(response.usedDns).isEqualTo(true)
+    assertThat(response.url).isEqualTo("http://homepage.guardian.home")
+  }
 
-    @Test
-    fun `homepage link returns 200 with dns failure falls back to configured ip`() {
-      HomepageManager.dnsResolver = { false }
-      val token = GrizzlyServerExtension.loginAndGetToken()
+  @Test
+  fun `homepage link returns 200 with dns failure falls back to configured ip`() {
+    HomepageManager.dnsResolver = { false }
+    val token = GrizzlyServerExtension.loginAndGetToken()
 
-      val response =
-          Given { header("Authorization", "Bearer $token") } When
-              {
-                get("/api/homepage/link")
-              } Then
-              {
-                statusCode(Response.Status.OK.statusCode)
-              } Extract
-              {
-                `as`(HomepageLinkResponse::class.java)
-              }
+    val response =
+        Given { header("Authorization", "Bearer $token") } When
+            {
+              get("/api/homepage/link")
+            } Then
+            {
+              statusCode(Response.Status.OK.statusCode)
+            } Extract
+            {
+              `as`(HomepageLinkResponse::class.java)
+            }
 
-      assertThat(response.usedDns).isEqualTo(false)
-      assertThat(response.url).startsWith("http://")
-    }
+    assertThat(response.usedDns).isEqualTo(false)
+    assertThat(response.url).startsWith("http://")
   }
 }

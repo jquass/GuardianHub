@@ -68,8 +68,8 @@ class ResultTest {
   fun `getOrThrow should throw ResultException on Error with defaults`() {
     val result = Result.error()
     assertThatThrownBy { result.getOrThrow() }
-      .isInstanceOf(ResultException::class.java)
-      .hasMessage(DEFAULT_ERROR)
+        .isInstanceOf(ResultException::class.java)
+        .hasMessage(DEFAULT_ERROR)
   }
 
   // --- errOrThrow ---

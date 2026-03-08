@@ -15,7 +15,7 @@ sealed class Result<out T> {
   ) : Result<Nothing>()
 
   companion object {
-      internal const val DEFAULT_ERROR = "Error Result"
+    internal const val DEFAULT_ERROR = "Error Result"
 
     fun success(): Result<Unit> = Success(Unit)
 

@@ -4,10 +4,6 @@ import com.jonquass.guardianhub.core.exception.ResultException
 import jakarta.ws.rs.core.Response
 
 sealed class Result<out T> {
-  fun isSc() {
-    TODO("Not yet implemented")
-  }
-
   data class Success<T>(
       val data: T,
   ) : Result<T>()

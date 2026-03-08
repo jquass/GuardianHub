@@ -1,5 +1,7 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.getOrThrow
+import com.jonquass.guardianhub.manager.DockerManager.DEFAULT_PROCESS_BUILDER_FACTORY
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -16,55 +18,52 @@ class DockerManagerTest {
   @AfterEach
   fun tearDown() {
     unmockkAll()
+    DockerManager.processBuilderFactory = DEFAULT_PROCESS_BUILDER_FACTORY
   }
 
   // --- exec ---
 
   @Test
-  fun `exec should return true when process exits with code 0`() {
+  fun `exec should return success when process exits with code 0`() {
     mockkConstructor(ProcessBuilder::class)
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } returns mockk { every { waitFor() } returns 0 } }
 
-    assertThat(DockerManager.exec("ps")).isTrue()
+    assertThat(DockerManager.exec("ps").isSuccess).isTrue
   }
 
   @Test
-  fun `exec should return false when process exits with non-zero code`() {
+  fun `exec should return error when process exits with non-zero code`() {
     mockkConstructor(ProcessBuilder::class)
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } returns mockk { every { waitFor() } returns 1 } }
 
-    assertThat(DockerManager.exec("ps")).isFalse()
+    assertThat(DockerManager.exec("ps").isError).isTrue
   }
 
   @Test
-  fun `exec should return false when process throws exception`() {
+  fun `exec should return error when process throws exception`() {
     mockkConstructor(ProcessBuilder::class)
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
 
-    assertThat(DockerManager.exec("ps")).isFalse()
+    assertThat(DockerManager.exec("ps").isError).isTrue
   }
 
   // --- execWithOutput ---
 
   @Test
   fun `execWithOutput should return exit code and output on success`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) {
-          every { start() } returns
-              mockk {
-                every { inputStream } returns ByteArrayInputStream("some output".toByteArray())
-                every { waitFor() } returns 0
-              }
-        }
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream("some output".toByteArray())
+        every { waitFor() } returns 0
+      }
+    }
 
-    val (exitCode, output) = DockerManager.execWithOutput("ps")
-
-    assertThat(exitCode).isEqualTo(0)
-    assertThat(output).isEqualTo("some output")
+    val result = DockerManager.execWithOutput("ps")
+    assertThat(result.isSuccess).isTrue
+    assertThat(result.getOrThrow()).isEqualTo("some output")
   }
 
   @Test
@@ -79,40 +78,31 @@ class DockerManagerTest {
               }
         }
 
-    val (exitCode, output) = DockerManager.execWithOutput("ps")
+    val result = DockerManager.execWithOutput("ps")
 
-    assertThat(exitCode).isEqualTo(1)
-    assertThat(output).isEqualTo("error output")
+    assertThat(result.isSuccess).isTrue
+    assertThat(result.getOrThrow()).isEqualTo("error output")
   }
 
   @Test
-  fun `execWithOutput should return -1 and null when exception is thrown`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
+  fun `execWithOutput should return error when exception is thrown`() {
+    DockerManager.processBuilderFactory = { throw RuntimeException("docker not found") }
 
-    val (exitCode, output) = DockerManager.execWithOutput("ps")
-
-    assertThat(exitCode).isEqualTo(-1)
-    assertThat(output).isNull()
+    val result = DockerManager.execWithOutput("ps")
+    assertThat(result.isError).isTrue
   }
 
   @Test
   fun `execWithOutput should return null output when process produces no output`() {
-    mockkConstructor(ProcessBuilder::class)
-    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
-        mockk(relaxed = true) {
-          every { start() } returns
-              mockk {
-                every { inputStream } returns ByteArrayInputStream(ByteArray(0))
-                every { waitFor() } returns 0
-              }
-        }
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream(ByteArray(0))
+        every { waitFor() } returns 0
+      }
+    }
 
-    val (exitCode, output) = DockerManager.execWithOutput("ps")
-
-    assertThat(exitCode).isEqualTo(0)
-    assertThat(output).isNull()
+    val result = DockerManager.execWithOutput("ps")
+    assertThat(result.isError).isTrue
   }
 
   // --- recreateContainer ---
@@ -129,7 +119,7 @@ class DockerManagerTest {
               }
         }
 
-    assertThat(DockerManager.recreateContainer("pihole")).isTrue()
+    assertThat(DockerManager.recreateContainer("pihole").isSuccess).isTrue
   }
 
   @Test
@@ -153,7 +143,7 @@ class DockerManagerTest {
             mockk(relaxed = true) { every { start() } returns failProcess },
         )
 
-    assertThat(DockerManager.recreateContainer("pihole")).isFalse()
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
   }
 
   @Test
@@ -162,6 +152,18 @@ class DockerManagerTest {
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returns
         mockk(relaxed = true) { every { start() } throws RuntimeException("docker not found") }
 
-    assertThat(DockerManager.recreateContainer("pihole")).isFalse()
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
+  }
+
+  @Test
+  fun `recreateContainer should return error when process produces no output`() {
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream(ByteArray(0))
+        every { waitFor() } returns 0
+      }
+    }
+
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
   }
 }

@@ -3,6 +3,8 @@ package com.jonquass.guardianhub.manager
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.getOrThrow
 import java.io.File
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -39,14 +41,13 @@ class ConfigManagerTest {
 
     val result = ConfigManager.readConfig()
 
-    Assertions.assertTrue(result.isSuccess)
+    assertThat(result.isSuccess).isTrue()
     val entries = result.getOrThrow().entries
-    org.assertj.core.api.Assertions.assertThat(entries).hasSize(2)
-    org.assertj.core.api.Assertions.assertThat(entries)
+    assertThat(entries)
         .extracting({ it.key }, { it.value })
         .containsExactly(
-            org.assertj.core.api.Assertions.tuple("GUARDIAN_IP", "0.0.0.1"),
-            org.assertj.core.api.Assertions.tuple("ROUTER_IP", "0.0.0.0"),
+            tuple("GUARDIAN_IP", "0.0.0.1"),
+            tuple("ROUTER_IP", "0.0.0.0"),
         )
   }
 
@@ -54,15 +55,14 @@ class ConfigManagerTest {
   fun `readConfig should mask sensitive values`() {
     tempFile.writeText("LOGIN_PASSWORD=super_secret_password\n")
 
-    val response = ConfigManager.readConfig()
+    val result = ConfigManager.readConfig()
 
-    Assertions.assertTrue(response.isSuccess)
-    val entries = response.getOrThrow().entries
-    org.assertj.core.api.Assertions.assertThat(entries).hasSize(1)
-    org.assertj.core.api.Assertions.assertThat(entries)
+    assertThat(result.isSuccess).isTrue()
+    val entries = result.getOrThrow().entries
+    assertThat(entries)
         .extracting({ it.key }, { it.value })
         .containsExactly(
-            org.assertj.core.api.Assertions.tuple("LOGIN_PASSWORD", ConfigManager.SENSITIVE_MASK),
+            tuple("LOGIN_PASSWORD", ConfigManager.SENSITIVE_MASK),
         )
   }
 
@@ -78,9 +78,9 @@ class ConfigManagerTest {
 
     val result = ConfigManager.readConfig()
 
-    org.assertj.core.api.Assertions.assertThat(result.isSuccess).isTrue()
+    assertThat(result.isSuccess).isTrue()
     val response = result.getOrThrow()
-    org.assertj.core.api.Assertions.assertThat(response.entries).hasSize(1)
+    assertThat(response.entries).hasSize(1)
   }
 
   @Test
@@ -96,9 +96,9 @@ class ConfigManagerTest {
 
     val result = ConfigManager.readConfig()
 
-    org.assertj.core.api.Assertions.assertThat(result.isSuccess).isTrue()
+    assertThat(result.isSuccess).isTrue()
     val response = result.getOrThrow()
-    org.assertj.core.api.Assertions.assertThat(response.entries).hasSize(2)
+    assertThat(response.entries).hasSize(2)
   }
 
   @Test
@@ -107,11 +107,10 @@ class ConfigManagerTest {
 
     val result = ConfigManager.readConfig()
 
-    org.assertj.core.api.Assertions.assertThat(result.isSuccess).isTrue()
+    assertThat(result.isSuccess).isTrue()
     val response = result.getOrThrow()
-    org.assertj.core.api.Assertions.assertThat(response.categories).hasSize(1)
-    org.assertj.core.api.Assertions.assertThat(response.categories.first().name)
-        .isEqualTo(Env.GUARDIAN_IP.category.displayName)
+    assertThat(response.categories).hasSize(1)
+    assertThat(response.categories.first().name).isEqualTo(Env.GUARDIAN_IP.category.displayName)
   }
 
   @Test
@@ -120,10 +119,10 @@ class ConfigManagerTest {
 
     val result = ConfigManager.readConfig()
 
-    org.assertj.core.api.Assertions.assertThat(result.isSuccess).isTrue()
+    assertThat(result.isSuccess).isTrue()
     val response = result.getOrThrow()
-    org.assertj.core.api.Assertions.assertThat(response.entries).isEmpty()
-    org.assertj.core.api.Assertions.assertThat(response.categories).isEmpty()
+    assertThat(response.entries).isEmpty()
+    assertThat(response.categories).isEmpty()
   }
 
   @Test
@@ -132,7 +131,7 @@ class ConfigManagerTest {
 
     val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
 
-    Assertions.assertEquals("0.0.0.1", result)
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.1")
   }
 
   @Test
@@ -141,7 +140,7 @@ class ConfigManagerTest {
 
     val result = ConfigManager.getRawConfigValue(Env.LOGIN_PASSWORD)
 
-    Assertions.assertEquals("secret_password", result)
+    assertThat(result.getOrThrow()).isEqualTo("secret_password")
   }
 
   @Test
@@ -150,25 +149,26 @@ class ConfigManagerTest {
 
     val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
 
-    Assertions.assertEquals("0.0.0.0", result)
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.0")
   }
 
   @Test
-  fun `getRawConfigValue should return null for missing key`() {
+  fun `getRawConfigValue should return error for missing key`() {
     tempFile.writeText("GUARDIAN_IP=0.0.0.1\n")
 
     val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
 
-    org.assertj.core.api.Assertions.assertThat(result).isNull()
+    assertThat(result.isError).isTrue()
   }
 
   @Test
-  fun `getRawConfigValue should return null for empty file`() {
+  fun `getRawConfigValue should return error for empty file`() {
     tempFile.writeText("")
 
     val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
 
-    org.assertj.core.api.Assertions.assertThat(result).isNull()
+    assertThat(result.isError).isTrue()
   }
 
   @Test
@@ -177,7 +177,8 @@ class ConfigManagerTest {
 
     val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
 
-    Assertions.assertEquals("0.0.0.0", result)
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.0")
   }
 
   @Test
@@ -186,7 +187,8 @@ class ConfigManagerTest {
 
     val result = ConfigManager.getRawConfigValue(Env.LOGIN_PASSWORD)
 
-    Assertions.assertEquals("abc=def==", result)
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("abc=def==")
   }
 
   @Test
@@ -214,8 +216,8 @@ class ConfigManagerTest {
     ConfigManager.upsertConfig(Env.GUARDIAN_IP, "0.0.0.2")
 
     val contents = tempFile.readText()
-    Assertions.assertTrue(contents.contains("GUARDIAN_IP=0.0.0.2"))
-    Assertions.assertFalse(contents.contains("0.0.0.1"))
+    assertThat(contents).contains("GUARDIAN_IP=0.0.0.2")
+    assertThat(contents).doesNotContain("0.0.0.1")
   }
 
   @Test
@@ -234,7 +236,7 @@ class ConfigManagerTest {
     ConfigManager.upsertConfig(Env.GUARDIAN_IP, "0.0.0.2")
 
     val occurrences = tempFile.readLines().count { it.startsWith("GUARDIAN_IP=") }
-    org.assertj.core.api.Assertions.assertThat(occurrences).isEqualTo(1)
+    assertThat(occurrences).isEqualTo(1)
   }
 
   @Test

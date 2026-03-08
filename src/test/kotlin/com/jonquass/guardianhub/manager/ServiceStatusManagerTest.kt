@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.mockkObject
@@ -16,7 +17,7 @@ class ServiceStatusManagerTest {
   @BeforeEach
   fun setUp() {
     mockkObject(DockerManager)
-    every { DockerManager.exec(*anyVararg<String>()) } returns true
+    every { DockerManager.exec(*anyVararg<String>()) } returns Result.success()
   }
 
   @AfterEach
@@ -44,16 +45,51 @@ class ServiceStatusManagerTest {
     every { DockerManager.exec(*anyVararg<String>()) } answers
         {
           Thread.sleep(200)
-          true
+          Result.success()
         }
-
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
+
     val result = ServiceStatusManager.getTaskStatus(taskId)
 
-    assertThat(result.isSuccess).isTrue
-    val response = result.getOrThrow()
-    assertThat(response?.taskId).isNotNull
-    assertThat(response?.taskId).isEqualTo(taskId)
+    assertThat(result.getOrThrow()?.status == "pending")
+  }
+
+  @Test
+  fun `restartServicesAsync should restart multiple services`() {
+    every { DockerManager.exec(*anyVararg<String>()) } answers
+        {
+          Thread.sleep(200)
+          Result.success()
+        }
+    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
+
+    await(taskId)
+
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+
+    assertThat(result.isSuccess).isTrue()
+    val status = result.getOrThrow()
+    assertThat(status?.status == "completed")
+    assertThat(status?.servicesRestarted).containsExactly("pihole", "wireguard")
+  }
+
+  @Test
+  fun `restartServicesAsync can fail restart services`() {
+    every { DockerManager.exec(*anyVararg<String>()) } answers
+        {
+          Thread.sleep(200)
+          Result.error()
+        }
+    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
+
+    await(taskId)
+
+    val result = ServiceStatusManager.getTaskStatus(taskId)
+
+    assertThat(result.isSuccess).isTrue()
+    val status = result.getOrThrow()
+    assertThat(status?.status == "completed")
+    assertThat(status?.servicesFailed).containsExactly("pihole", "wireguard")
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.core
 
+import com.jonquass.guardianhub.core.Result.Companion.DEFAULT_ERROR
 import com.jonquass.guardianhub.core.exception.ResultException
 import jakarta.ws.rs.core.Response
 import org.assertj.core.api.Assertions.assertThat
@@ -14,14 +15,14 @@ class ResultTest {
 
   @Test
   fun `Success isSuccess should be true`() {
-    val result = Result.Success("data")
+    val result = Result.success("data")
     assertThat(result.isSuccess).isTrue()
     assertThat(result.isError).isFalse()
   }
 
   @Test
   fun `Error isError should be true`() {
-    val result = Result.Error("something went wrong")
+    val result = Result.error("something went wrong")
     assertThat(result.isError).isTrue()
     assertThat(result.isSuccess).isFalse()
   }
@@ -30,44 +31,52 @@ class ResultTest {
 
   @Test
   fun `Error should default to INTERNAL_SERVER_ERROR status`() {
-    val result = Result.Error("something went wrong")
-    assertThat(result.code).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR)
+    val result = Result.error("something went wrong")
+    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR)
   }
 
   @Test
   fun `Error should use provided status code`() {
-    val result = Result.Error("not found", Response.Status.BAD_REQUEST)
-    assertThat(result.code).isEqualTo(Response.Status.BAD_REQUEST)
+    val result = Result.error("not found", Response.Status.BAD_REQUEST)
+    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.BAD_REQUEST)
   }
 
   // --- getOrThrow ---
 
   @Test
   fun `getOrThrow should return data on Success`() {
-    val result = Result.Success("hello")
+    val result = Result.success("hello")
     assertThat(result.getOrThrow()).isEqualTo("hello")
   }
 
   @Test
-  fun `getOrThrow should return null data on Success with null`() {
-    val result = Result.Success<Nothing?>(null)
+  fun `getOrThrow should return Unit on Success by default`() {
+    val result = Result.success()
     val data = result.getOrThrow()
-    assertThat(data as Any?).isNull()
+    assertThat(data).isInstanceOf(Unit::class.java)
   }
 
   @Test
   fun `getOrThrow should throw ResultException on Error`() {
-    val result = Result.Error("something went wrong", Response.Status.BAD_REQUEST)
+    val result = Result.error("something went wrong", Response.Status.BAD_REQUEST)
     assertThatThrownBy { result.getOrThrow() }
         .isInstanceOf(ResultException::class.java)
         .hasMessage("something went wrong")
+  }
+
+  @Test
+  fun `getOrThrow should throw ResultException on Error with defaults`() {
+    val result = Result.error()
+    assertThatThrownBy { result.getOrThrow() }
+        .isInstanceOf(ResultException::class.java)
+        .hasMessage(DEFAULT_ERROR)
   }
 
   // --- errOrThrow ---
 
   @Test
   fun `errOrThrow should return Error on Error`() {
-    val result = Result.Error("something went wrong", Response.Status.BAD_REQUEST)
+    val result = Result.error("something went wrong", Response.Status.BAD_REQUEST)
     val error = result.errOrThrow()
     assertThat(error.message).isEqualTo("something went wrong")
     assertThat(error.code).isEqualTo(Response.Status.BAD_REQUEST)
@@ -75,7 +84,7 @@ class ResultTest {
 
   @Test
   fun `errOrThrow should throw ResultException on Success`() {
-    val result = Result.Success("data")
+    val result = Result.success("data")
     assertThatThrownBy { result.errOrThrow() }
         .isInstanceOf(ResultException::class.java)
         .hasMessage("errOrThrow called on Result.Success")
@@ -85,7 +94,7 @@ class ResultTest {
 
   @Test
   fun `toResponse should return 200 with data on Success`() {
-    val result = Result.Success("response data")
+    val result = Result.success("response data")
     val response = result.toResponse()
     assertThat(response.status).isEqualTo(Response.Status.OK.statusCode)
     assertThat(response.entity).isEqualTo("response data")
@@ -93,7 +102,7 @@ class ResultTest {
 
   @Test
   fun `toResponse should return 500 with error body on Error with default status`() {
-    val result = Result.Error("something went wrong")
+    val result = Result.error("something went wrong")
     val response = result.toResponse()
 
     assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
@@ -104,8 +113,20 @@ class ResultTest {
   }
 
   @Test
+  fun `toResponse should return 500 with error body on Error with default body`() {
+    val result = Result.error()
+    val response = result.toResponse()
+
+    assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
+
+    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
+    assertThat(body["status"]).isEqualTo("error")
+    assertThat(body["message"]).isEqualTo(DEFAULT_ERROR)
+  }
+
+  @Test
   fun `toResponse should return correct status code on Error with custom status`() {
-    val result = Result.Error("bad input", Response.Status.BAD_REQUEST)
+    val result = Result.error("bad input", Response.Status.BAD_REQUEST)
     val response = result.toResponse()
 
     assertThat(response.status).isEqualTo(Response.Status.BAD_REQUEST.statusCode)

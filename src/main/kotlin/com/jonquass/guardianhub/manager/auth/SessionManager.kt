@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager.auth
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -9,6 +10,7 @@ object SessionManager : Loggable {
   private val sessions = ConcurrentHashMap<String, Long>()
   private const val SESSION_DURATION = 24 * 60 * 60 * 1000L // 24 hours
 
+  @ExcludeManagerCheck
   fun createSession(): String {
     val token = UUID.randomUUID().toString()
     val expiresAt = System.currentTimeMillis() + SESSION_DURATION
@@ -18,6 +20,7 @@ object SessionManager : Loggable {
     return token
   }
 
+  @ExcludeManagerCheck
   fun isValidSession(token: String): Boolean {
     val expiresAt = sessions[token] ?: return false
 

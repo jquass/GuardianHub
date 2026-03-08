@@ -51,16 +51,16 @@ class ServiceStatusManagerTest {
 
     val result = ServiceStatusManager.getTaskStatus(taskId)
 
-    assertThat (result.getOrThrow()?.status == "pending")
+    assertThat(result.getOrThrow()?.status == "pending")
   }
 
   @Test
   fun `restartServicesAsync should restart multiple services`() {
     every { DockerManager.exec(*anyVararg<String>()) } answers
-            {
-              Thread.sleep(200)
-              Result.success()
-            }
+        {
+          Thread.sleep(200)
+          Result.success()
+        }
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
 
     await(taskId)
@@ -69,17 +69,17 @@ class ServiceStatusManagerTest {
 
     assertThat(result.isSuccess).isTrue()
     val status = result.getOrThrow()
-    assertThat (status?.status == "completed")
+    assertThat(status?.status == "completed")
     assertThat(status?.servicesRestarted).containsExactly("pihole", "wireguard")
   }
 
   @Test
   fun `restartServicesAsync can fail restart services`() {
     every { DockerManager.exec(*anyVararg<String>()) } answers
-            {
-              Thread.sleep(200)
-              Result.error()
-            }
+        {
+          Thread.sleep(200)
+          Result.error()
+        }
     val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
 
     await(taskId)
@@ -88,7 +88,7 @@ class ServiceStatusManagerTest {
 
     assertThat(result.isSuccess).isTrue()
     val status = result.getOrThrow()
-    assertThat (status?.status == "completed")
+    assertThat(status?.status == "completed")
     assertThat(status?.servicesFailed).containsExactly("pihole", "wireguard")
   }
 

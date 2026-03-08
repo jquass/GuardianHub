@@ -125,27 +125,27 @@ class ConfigManagerTest {
     assertThat(response.categories).isEmpty()
   }
 
-    @Test
-    fun `readConfig should ignore keys without values`() {
-        tempFile.writeText("GUARDIAN_IP")
+  @Test
+  fun `readConfig should ignore keys without values`() {
+    tempFile.writeText("GUARDIAN_IP")
 
-        val result = ConfigManager.readConfig()
+    val result = ConfigManager.readConfig()
 
-        assertThat(result.isSuccess).isTrue()
-        val response = result.getOrThrow()
-        assertThat(response.entries).isEmpty()
-        assertThat(response.categories).isEmpty()
-    }
+    assertThat(result.isSuccess).isTrue()
+    val response = result.getOrThrow()
+    assertThat(response.entries).isEmpty()
+    assertThat(response.categories).isEmpty()
+  }
 
-    @Test
-    fun `readConfig should return error if file is unreadable`() {
-        tempFile.setReadable(false)
+  @Test
+  fun `readConfig should return error if file is unreadable`() {
+    tempFile.setReadable(false)
 
-        val result = ConfigManager.readConfig()
+    val result = ConfigManager.readConfig()
 
-        assertThat(result.isError).isTrue
-        tempFile.setReadable(true)
-    }
+    assertThat(result.isError).isTrue
+    tempFile.setReadable(true)
+  }
 
   @Test
   fun `getRawConfigValue should return value for existing key`() {
@@ -275,6 +275,4 @@ class ConfigManagerTest {
 
     Assertions.assertTrue(tempFile.readText().contains("ROUTER_IP=0.0.0.0"))
   }
-
-
 }

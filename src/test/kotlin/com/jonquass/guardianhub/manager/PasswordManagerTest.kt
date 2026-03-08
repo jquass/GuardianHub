@@ -226,6 +226,26 @@ class PasswordManagerTest {
   }
 
   @Test
+  fun `updateNpmPassword should return error when updateNpmUserPassword fails`() {
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
+        Result.success("admin@example.com")
+    every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
+        Result.success("currentPassword1!")
+    every { DockerManager.execWithOutput(*anyVararg<String>()) } returnsMany
+        listOf(
+            Result.success("""{"token":"abc123"}"""),
+            Result.success("""[{"id":1,"email":"admin@example.com"}]"""),
+            Result.error(),
+        )
+
+    val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
+
+    assertThat(result.isError).isTrue()
+    val response = result.errOrThrow()
+    assertThat(response.message).isEqualTo("Failed to update NPM password via API")
+  }
+
+  @Test
   fun `updateNpmPassword should return success when all steps succeed`() {
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_EMAIL) } returns
         Result.success("admin@example.com")

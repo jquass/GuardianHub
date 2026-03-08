@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.core
 
+import com.jonquass.guardianhub.core.Result.Companion.DEFAULT_ERROR
 import com.jonquass.guardianhub.core.exception.ResultException
 import jakarta.ws.rs.core.Response
 import org.assertj.core.api.Assertions.assertThat
@@ -63,6 +64,14 @@ class ResultTest {
         .hasMessage("something went wrong")
   }
 
+  @Test
+  fun `getOrThrow should throw ResultException on Error with defaults`() {
+    val result = Result.error()
+    assertThatThrownBy { result.getOrThrow() }
+      .isInstanceOf(ResultException::class.java)
+      .hasMessage(DEFAULT_ERROR)
+  }
+
   // --- errOrThrow ---
 
   @Test
@@ -101,6 +110,18 @@ class ResultTest {
     @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
     assertThat(body["status"]).isEqualTo("error")
     assertThat(body["message"]).isEqualTo("something went wrong")
+  }
+
+  @Test
+  fun `toResponse should return 500 with error body on Error with default body`() {
+    val result = Result.error()
+    val response = result.toResponse()
+
+    assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
+
+    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
+    assertThat(body["status"]).isEqualTo("error")
+    assertThat(body["message"]).isEqualTo(DEFAULT_ERROR)
   }
 
   @Test

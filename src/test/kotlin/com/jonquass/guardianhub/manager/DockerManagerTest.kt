@@ -154,4 +154,16 @@ class DockerManagerTest {
 
     assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
   }
+
+  @Test
+  fun `recreateContainer should return error when process produces no output`() {
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream(ByteArray(0))
+        every { waitFor() } returns 0
+      }
+    }
+
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
+  }
 }

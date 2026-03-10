@@ -52,6 +52,7 @@ class AuthFilter : ContainerRequestFilter, Loggable {
     if (path.endsWith(".css")) return true
     if (path.endsWith(".svg")) return true
     if (path.endsWith(".ico")) return true
+    if (path.endsWith(".json")) return true
 
     // API endpoints
     if (path == "auth/login") return true

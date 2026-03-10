@@ -86,6 +86,13 @@ class AuthFilterTest {
   }
 
   @Test
+  fun `filter should allow json files`() {
+    val context = mockContext("openapi.json")
+    filter.filter(context)
+    verify(exactly = 0) { context.abortWith(any()) }
+  }
+
+  @Test
   fun `filter should allow auth health endpoint`() {
     val context = mockContext("health", method = "GET")
     filter.filter(context)

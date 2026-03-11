@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.manager
 
 import com.jonquass.guardianhub.core.config.Env
+import com.jonquass.guardianhub.core.config.EnvCategory
 import com.jonquass.guardianhub.core.exception.ConfigException
 import com.jonquass.guardianhub.core.getOrThrow
 import java.io.File
@@ -168,6 +169,21 @@ class ConfigManagerTest {
     assertThat(response.categories.map { it.name }.toSet()).isEqualTo(entryCategoryNames)
   }
 
+    @Test
+    fun `readConfig categories should only contain entries matching a known EnvCategory`() {
+        // Every Env entry must have a category whose displayName matches an EnvCategory,
+        // so mapNotNull's null branch in readConfig is structurally unreachable.
+        // This test guards that invariant at the enum level.
+        Env.entries
+            .filter { it != Env.UNKNOWN }
+            .forEach { env ->
+                val match = EnvCategory.entries.find { it.displayName == env.category.displayName }
+                assertThat(match)
+                    .withFailMessage("Env.${env.name} has category '${env.category.displayName}' with no matching EnvCategory")
+                    .isNotNull()
+            }
+    }
+
   @Test
   fun `getRawConfigValue should return value for existing key`() {
     tempFile.writeText("GUARDIAN_IP=0.0.0.1\n")
@@ -232,6 +248,22 @@ class ConfigManagerTest {
 
     assertThat(result.isSuccess).isTrue()
     assertThat(result.getOrThrow()).isEqualTo("abc=def==")
+  }
+
+  @Test
+  fun `getRawConfigValue should skip lines without equals sign`() {
+    tempFile.writeText(
+        """
+        GUARDIAN_IP
+        ROUTER_IP=0.0.0.0
+        """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.0")
   }
 
   @Test

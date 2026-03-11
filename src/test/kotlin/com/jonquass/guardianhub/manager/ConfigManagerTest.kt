@@ -1,6 +1,8 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.config.ConfigEntry
 import com.jonquass.guardianhub.core.config.Env
+import com.jonquass.guardianhub.core.exception.ConfigException
 import com.jonquass.guardianhub.core.getOrThrow
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConfigManagerTest {
@@ -138,13 +141,51 @@ class ConfigManagerTest {
   }
 
   @Test
-  fun `readConfig should return error if file is unreadable`() {
+  fun `readConfig should throw ConfigException if file is unreadable`() {
     tempFile.setReadable(false)
+
+    assertThrows<ConfigException> { ConfigManager.readConfig() }
+
+    tempFile.setReadable(true)
+  }
+
+  @Test
+  fun `readConfig should only include categories that have matching entries`() {
+    // Write two entries from potentially different categories
+    tempFile.writeText(
+        """
+        GUARDIAN_IP=0.0.0.1
+        ROUTER_IP=0.0.0.0
+        """
+            .trimIndent(),
+    )
 
     val result = ConfigManager.readConfig()
 
-    assertThat(result.isError).isTrue
-    tempFile.setReadable(true)
+    assertThat(result.isSuccess).isTrue()
+    val response = result.getOrThrow()
+    // All returned category names must correspond to actual entries
+    val entryCategoryNames = response.entries.map { it.categoryName }.toSet()
+    assertThat(response.categories.map { it.name }.toSet()).isEqualTo(entryCategoryNames)
+  }
+
+  @Test
+  fun `getCategoriesWithEntries should filter out entries with unknown category names`() {
+    val entries =
+        mutableListOf(
+            ConfigEntry(
+                key = "GUARDIAN_IP",
+                value = "0.0.0.1",
+                categoryName = "NON_EXISTENT_CATEGORY",
+                description = "some description",
+                sensitive = false,
+                tooltip = null,
+            ),
+        )
+
+    val result = ConfigManager.getCategoriesWithEntries(entries)
+
+    assertThat(result).isEmpty()
   }
 
   @Test
@@ -214,6 +255,135 @@ class ConfigManagerTest {
   }
 
   @Test
+  fun `getRawConfigValue should skip lines without equals sign`() {
+    tempFile.writeText(
+        """
+        GUARDIAN_IP
+        ROUTER_IP=0.0.0.0
+        """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.ROUTER_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.0")
+  }
+
+  @Test
+  fun `getRawConfigValue should ignore comment lines`() {
+    tempFile.writeText(
+        """
+              # This is a comment
+              GUARDIAN_IP=0.0.0.1
+              """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.1")
+  }
+
+  @Test
+  fun `getRawConfigValue should return error if file is unreadable`() {
+    tempFile.setReadable(false)
+
+    assertThrows<ConfigException> { ConfigManager.getRawConfigValue(Env.GUARDIAN_IP) }
+
+    tempFile.setReadable(true)
+  }
+
+  @Test
+  fun `getRawConfigValue should skip empty lines and still find key`() {
+    tempFile.writeText(
+        """
+        
+        GUARDIAN_IP=0.0.0.1
+        
+        """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.1")
+  }
+
+  @Test
+  fun `getRawConfigValue should return error when file has keys but none match`() {
+    tempFile.writeText(
+        """
+        ROUTER_IP=0.0.0.0
+        LOGIN_PASSWORD=secret
+        """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isError).isTrue()
+  }
+
+  @Test
+  fun `getRawConfigValue should not strip mismatched double quotes`() {
+    tempFile.writeText("GUARDIAN_IP=\"0.0.0.1\n")
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    // Value should be returned as-is since closing quote is missing
+    assertThat(result.getOrThrow()).isEqualTo("\"0.0.0.1")
+  }
+
+  @Test
+  fun `getRawConfigValue should not strip mismatched single quotes`() {
+    tempFile.writeText("GUARDIAN_IP='0.0.0.1\n")
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    // Value should be returned as-is since quotes don't match on both sides
+    assertThat(result.getOrThrow()).isEqualTo("'0.0.0.1")
+  }
+
+  @Test
+  fun `getRawConfigValue should return correct value when target key is not the first entry`() {
+    tempFile.writeText(
+        """
+        ROUTER_IP=0.0.0.0
+        GUARDIAN_IP=0.0.0.1
+        """
+            .trimIndent(),
+    )
+
+    val result = ConfigManager.getRawConfigValue(Env.GUARDIAN_IP)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isEqualTo("0.0.0.1")
+  }
+
+  @Test
+  fun `upsertConfig should throw ConfigException if file is unreadable`() {
+    tempFile.setReadable(false)
+
+    assertThrows<ConfigException> { ConfigManager.upsertConfig(Env.GUARDIAN_IP, "0.0.0.1") }
+
+    tempFile.setReadable(true)
+  }
+
+  @Test
+  fun `upsertConfig should throw ConfigException if file is not writeable`() {
+    tempFile.setWritable(false)
+
+    assertThrows<ConfigException> { ConfigManager.upsertConfig(Env.GUARDIAN_IP, "0.0.0.1") }
+
+    tempFile.setWritable(true)
+  }
+
+  @Test
   fun `upsertConfig should add new key if not present`() {
     tempFile.writeText("LOGIN_PASSWORD=secret_password\n")
 
@@ -274,5 +444,16 @@ class ConfigManagerTest {
     ConfigManager.upsertConfig(Env.GUARDIAN_IP, "0.0.0.2")
 
     Assertions.assertTrue(tempFile.readText().contains("ROUTER_IP=0.0.0.0"))
+  }
+
+  @Test
+  fun `upsertConfig should wrap sensitive values in single quotes when updating`() {
+    tempFile.writeText("LOGIN_PASSWORD='old_secret'\n")
+
+    ConfigManager.upsertConfig(Env.LOGIN_PASSWORD, "new_secret")
+
+    val contents = tempFile.readText()
+    assertThat(contents).contains("LOGIN_PASSWORD='new_secret'")
+    assertThat(contents).doesNotContain("old_secret")
   }
 }

@@ -58,21 +58,7 @@ object ConfigManager : Loggable {
       }
     }
 
-    // Get unique categories from entries (only categories that have entries)
-    val categoriesWithEntries =
-        entries
-            .map { it.categoryName }
-            .distinct()
-            .mapNotNull { categoryName ->
-              EnvCategory.entries.find { it.displayName == categoryName }
-            }
-            .map { category ->
-              CategoryInfo(
-                  name = category.displayName,
-                  tooltip = category.tooltip,
-              )
-            }
-
+    val categoriesWithEntries = getCategoriesWithEntries(entries)
     val configResponse =
         ConfigResponse(
             categories = categoriesWithEntries,
@@ -80,6 +66,19 @@ object ConfigManager : Loggable {
         )
 
     return Result.success(configResponse)
+  }
+
+  internal fun getCategoriesWithEntries(entries: MutableList<ConfigEntry>): List<CategoryInfo> {
+    return entries
+        .map { it.categoryName }
+        .distinct()
+        .mapNotNull { categoryName -> EnvCategory.entries.find { it.displayName == categoryName } }
+        .map { category ->
+          CategoryInfo(
+              name = category.displayName,
+              tooltip = category.tooltip,
+          )
+        }
   }
 
   /** Upsert a configuration value in the .env file */

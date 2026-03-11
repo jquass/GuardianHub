@@ -1,7 +1,7 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.config.ConfigEntry
 import com.jonquass.guardianhub.core.config.Env
-import com.jonquass.guardianhub.core.config.EnvCategory
 import com.jonquass.guardianhub.core.exception.ConfigException
 import com.jonquass.guardianhub.core.getOrThrow
 import java.io.File
@@ -170,19 +170,22 @@ class ConfigManagerTest {
   }
 
   @Test
-  fun `readConfig categories should only contain entries matching a known EnvCategory`() {
-    // Every Env entry must have a category whose displayName matches an EnvCategory,
-    // so mapNotNull's null branch in readConfig is structurally unreachable.
-    // This test guards that invariant at the enum level.
-    Env.entries
-        .filter { it != Env.UNKNOWN }
-        .forEach { env ->
-          val match = EnvCategory.entries.find { it.displayName == env.category.displayName }
-          assertThat(match)
-              .withFailMessage(
-                  "Env.${env.name} has category '${env.category.displayName}' with no matching EnvCategory")
-              .isNotNull()
-        }
+  fun `getCategoriesWithEntries should filter out entries with unknown category names`() {
+    val entries =
+        mutableListOf(
+            ConfigEntry(
+                key = "GUARDIAN_IP",
+                value = "0.0.0.1",
+                categoryName = "NON_EXISTENT_CATEGORY",
+                description = "some description",
+                sensitive = false,
+                tooltip = null,
+            ),
+        )
+
+    val result = ConfigManager.getCategoriesWithEntries(entries)
+
+    assertThat(result).isEmpty()
   }
 
   @Test

@@ -50,12 +50,16 @@ class AuthResourceIT {
   }
 
   @Test
-  fun `check returns 401 without auth`() {
-    When { get("/api/auth/check") } Then { statusCode(Response.Status.UNAUTHORIZED.statusCode) }
+  fun `check returns 200 with authenticated false without auth`() {
+    When { get("/api/auth/check") } Then
+        {
+          statusCode(Response.Status.OK.statusCode)
+          body("authenticated", equalTo(false))
+        }
   }
 
   @Test
-  fun `check returns 200 with valid token`() {
+  fun `check returns 200 with authenticated true with valid token`() {
     val token = GrizzlyServerExtension.loginAndGetToken()
 
     Given { header("Authorization", "Bearer $token") } When
@@ -64,6 +68,7 @@ class AuthResourceIT {
         } Then
         {
           statusCode(Response.Status.OK.statusCode)
+          body("authenticated", equalTo(true))
         }
   }
 

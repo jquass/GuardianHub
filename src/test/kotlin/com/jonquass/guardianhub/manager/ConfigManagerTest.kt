@@ -169,20 +169,21 @@ class ConfigManagerTest {
     assertThat(response.categories.map { it.name }.toSet()).isEqualTo(entryCategoryNames)
   }
 
-    @Test
-    fun `readConfig categories should only contain entries matching a known EnvCategory`() {
-        // Every Env entry must have a category whose displayName matches an EnvCategory,
-        // so mapNotNull's null branch in readConfig is structurally unreachable.
-        // This test guards that invariant at the enum level.
-        Env.entries
-            .filter { it != Env.UNKNOWN }
-            .forEach { env ->
-                val match = EnvCategory.entries.find { it.displayName == env.category.displayName }
-                assertThat(match)
-                    .withFailMessage("Env.${env.name} has category '${env.category.displayName}' with no matching EnvCategory")
-                    .isNotNull()
-            }
-    }
+  @Test
+  fun `readConfig categories should only contain entries matching a known EnvCategory`() {
+    // Every Env entry must have a category whose displayName matches an EnvCategory,
+    // so mapNotNull's null branch in readConfig is structurally unreachable.
+    // This test guards that invariant at the enum level.
+    Env.entries
+        .filter { it != Env.UNKNOWN }
+        .forEach { env ->
+          val match = EnvCategory.entries.find { it.displayName == env.category.displayName }
+          assertThat(match)
+              .withFailMessage(
+                  "Env.${env.name} has category '${env.category.displayName}' with no matching EnvCategory")
+              .isNotNull()
+        }
+  }
 
   @Test
   fun `getRawConfigValue should return value for existing key`() {

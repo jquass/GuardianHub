@@ -34,22 +34,22 @@ class TimezoneManagerTest {
 
   @Test
   fun `isValidTimezone should return true for valid timezone`() {
-    assertThat(TimezoneManager.isValidTimezone("America/New_York")).isTrue()
+    assertThat(TimezoneManager.isValidTimezoneResult("America/New_York").isSuccess).isTrue()
   }
 
   @Test
   fun `isValidTimezone should return true for UTC`() {
-    assertThat(TimezoneManager.isValidTimezone("UTC")).isTrue()
+    assertThat(TimezoneManager.isValidTimezoneResult("UTC").isSuccess).isTrue()
   }
 
   @Test
   fun `isValidTimezone should return false for invalid timezone`() {
-    assertThat(TimezoneManager.isValidTimezone("Not/A/Timezone")).isFalse()
+    assertThat(TimezoneManager.isValidTimezoneResult("Not/A/Timezone").isError).isTrue()
   }
 
   @Test
   fun `isValidTimezone should return false for blank string`() {
-    assertThat(TimezoneManager.isValidTimezone("")).isFalse()
+    assertThat(TimezoneManager.isValidTimezoneResult("").isError).isTrue()
   }
 
   // --- getTimezones ---
@@ -88,9 +88,9 @@ class TimezoneManagerTest {
         TimezoneManager.updateTimezonesResult(UpdateTimezoneRequest(timezone = "America/New_York"))
 
     assertThat(result.isSuccess).isTrue()
-    val body = result.getOrThrow()
-    assertThat(body["taskId"]).isEqualTo("test-task-id")
-    assertThat(body["message"] as String).contains("America/New_York")
+    val response = result.getOrThrow()
+    assertThat(response.taskId).isEqualTo("test-task-id")
+    assertThat(response.message).contains("America/New_York")
   }
 
   @Test

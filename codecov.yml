@@ -1,0 +1,2 @@
+ignore:
+  - "src/main/kotlin/com/jonquass/guardianhub/Main.kt"

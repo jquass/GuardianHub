@@ -56,7 +56,9 @@ class AuthFilter : ContainerRequestFilter, Loggable {
 
     // API endpoints
     if (path == "auth/login") return true
+    if (path == "auth/logout") return true
     if (path == "auth/reset-to-factory") return true
+    if (path == "auth/check") return true
     if (path == "health") return true
 
     return false

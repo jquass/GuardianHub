@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.filter
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
 import io.mockk.every
@@ -115,7 +116,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should not allow non-login html`() {
-    every { AuthManager.getToken(any()) } returns null
+    every { AuthManager.getToken(any()) } returns Result.error()
     val context = mockContext("dashboard.html")
     filter.filter(context)
     verify(exactly = 1) { context.abortWith(any()) }
@@ -123,7 +124,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should not allow non-login js`() {
-    every { AuthManager.getToken(any()) } returns null
+    every { AuthManager.getToken(any()) } returns Result.error()
     val context = mockContext("app.js")
     filter.filter(context)
     verify(exactly = 1) { context.abortWith(any()) }
@@ -133,7 +134,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should abort with 401 JSON when no token and accept is not html`() {
-    every { AuthManager.getToken(any()) } returns null
+    every { AuthManager.getToken(any()) } returns Result.error()
     val responseSlot = slot<Response>()
     val context = mockContext("api/config", acceptHeader = "application/json")
     every { context.abortWith(capture(responseSlot)) } returns Unit
@@ -149,7 +150,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should redirect to login when no token and accept is html`() {
-    every { AuthManager.getToken(any()) } returns null
+    every { AuthManager.getToken(any()) } returns Result.error()
     val responseSlot = slot<Response>()
     val context = mockContext("api/config", acceptHeader = "text/html")
     every { context.abortWith(capture(responseSlot)) } returns Unit
@@ -162,7 +163,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should abort when token is empty string`() {
-    every { AuthManager.getToken(any()) } returns ""
+    every { AuthManager.getToken(any()) } returns Result.error()
     val context = mockContext("api/config", acceptHeader = "application/json")
     filter.filter(context)
     verify(exactly = 1) { context.abortWith(any()) }
@@ -172,7 +173,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should abort with 401 when token is invalid`() {
-    every { AuthManager.getToken(any()) } returns "bad-token"
+    every { AuthManager.getToken(any()) } returns Result.success("bad-token")
     every { SessionManager.isValidSession("bad-token") } returns false
     val responseSlot = slot<Response>()
     val context = mockContext("api/config", acceptHeader = "application/json")
@@ -188,7 +189,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should redirect to login when token is invalid and accept is html`() {
-    every { AuthManager.getToken(any()) } returns "bad-token"
+    every { AuthManager.getToken(any()) } returns Result.success("bad-token")
     every { SessionManager.isValidSession("bad-token") } returns false
     val responseSlot = slot<Response>()
     val context = mockContext("api/config", acceptHeader = "text/html")
@@ -204,7 +205,7 @@ class AuthFilterTest {
 
   @Test
   fun `filter should allow request with valid token`() {
-    every { AuthManager.getToken(any()) } returns "valid-token"
+    every { AuthManager.getToken(any()) } returns Result.success("valid-token")
     every { SessionManager.isValidSession("valid-token") } returns true
     val context = mockContext("api/config", authHeader = "Bearer valid-token")
 

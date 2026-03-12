@@ -60,3 +60,8 @@ fun <T> Result<T>.toResponse(): Response =
         Response.status(this.code).entity(mapOf("status" to "error", "message" to message)).build()
       }
     }
+
+fun <T> T?.orError(
+    errorMessage: String? = null,
+    code: Response.Status = Response.Status.UNAUTHORIZED,
+): Result<T> = if (this != null) Result.success(this) else Result.error(errorMessage, code)

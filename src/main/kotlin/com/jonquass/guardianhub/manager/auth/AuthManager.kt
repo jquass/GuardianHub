@@ -1,7 +1,6 @@
 package com.jonquass.guardianhub.manager.auth
 
 import com.jonquass.guardianhub.config.Loggable
-import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.api.auth.ChangePasswordResponse
@@ -12,6 +11,7 @@ import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
 import com.jonquass.guardianhub.core.api.auth.ResetToFactoryResponse
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.getOrThrow
+import com.jonquass.guardianhub.core.orError
 import com.jonquass.guardianhub.manager.ConfigManager
 import jakarta.ws.rs.core.Response
 import java.io.File
@@ -79,9 +79,9 @@ object AuthManager : Loggable {
   }
 
   fun logout(authHeader: String?): Result<Unit> {
-    val token = getToken(authHeader)
-    if (token != null) {
-      SessionManager.invalidateSession(token)
+    val result = getToken(authHeader)
+    if (result.isSuccess) {
+      SessionManager.invalidateSession(result.getOrThrow())
     }
     return Result.success()
   }
@@ -91,12 +91,22 @@ object AuthManager : Loggable {
     return Result.success(CheckAuthResponse(isAuthValid))
   }
 
-  @ExcludeManagerCheck
-  fun getToken(authHeader: String?): String? = authHeader?.removePrefix("Bearer ")?.trim()
+  fun getToken(authHeader: String?): Result<String> =
+      authHeader
+          ?.removePrefix("Bearer ")
+          ?.trim()
+          ?.takeIf { it.isNotEmpty() }
+          .orError(
+              errorMessage = "Missing or empty Authorization header",
+              code = Response.Status.UNAUTHORIZED)
 
   private fun isAuthValid(authHeader: String?): Boolean {
-    val token = getToken(authHeader)
-    return token?.let { SessionManager.isValidSession(it) } ?: false
+    val result = getToken(authHeader)
+    if (result.isError) {
+      return false
+    }
+
+    return SessionManager.isValidSession(result.getOrThrow())
   }
 
   private fun validatePassword(password: String): Boolean {

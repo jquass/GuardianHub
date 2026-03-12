@@ -169,4 +169,12 @@ class ResultTest {
     val error = result as Result.Error
     assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
   }
+
+  @Test
+  fun `orError should use default status code and message when not provided`() {
+    val result = null.orError()
+    val error = result as Result.Error
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+    assertThat(error.message).isNull()
+  }
 }

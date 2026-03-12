@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.core
 
 import com.jonquass.guardianhub.core.Result.Companion.DEFAULT_ERROR
+import com.jonquass.guardianhub.core.api.ErrorResponse
 import com.jonquass.guardianhub.core.exception.ResultException
 import jakarta.ws.rs.core.Response
 import org.assertj.core.api.Assertions.assertThat
@@ -107,9 +108,8 @@ class ResultTest {
 
     assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
 
-    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
-    assertThat(body["status"]).isEqualTo("error")
-    assertThat(body["message"]).isEqualTo("something went wrong")
+    val errorResponse = response.entity as ErrorResponse
+    assertThat(errorResponse.message).isEqualTo("something went wrong")
   }
 
   @Test
@@ -119,21 +119,20 @@ class ResultTest {
 
     assertThat(response.status).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.statusCode)
 
-    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
-    assertThat(body["status"]).isEqualTo("error")
-    assertThat(body["message"]).isEqualTo(DEFAULT_ERROR)
+    val errorResponse = response.entity as ErrorResponse
+    assertThat(errorResponse.message).isEqualTo(DEFAULT_ERROR)
   }
 
   @Test
   fun `toResponse should return correct status code on Error with custom status`() {
-    val result = Result.error("bad input", Response.Status.BAD_REQUEST)
+    val message = "bad input"
+    val result = Result.error(message, Response.Status.BAD_REQUEST)
     val response = result.toResponse()
 
     assertThat(response.status).isEqualTo(Response.Status.BAD_REQUEST.statusCode)
 
-    @Suppress("UNCHECKED_CAST") val body = response.entity as Map<String, String>
-    assertThat(body["status"]).isEqualTo("error")
-    assertThat(body["message"]).isEqualTo("bad input")
+    val errorResponse = response.entity as ErrorResponse
+    assertThat(errorResponse.message).isEqualTo(message)
   }
 
   // --- orError ---

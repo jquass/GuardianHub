@@ -1,7 +1,9 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.GrizzlyServerExtension
+import com.jonquass.guardianhub.core.api.ErrorResponse
 import com.jonquass.guardianhub.core.api.TimezoneResponse
+import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.api.UpdateTimezoneResponse
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
@@ -47,7 +49,7 @@ class TimezoneResourceIT {
   fun `update timezone returns 401 without auth`() {
     Given {
       contentType(ContentType.JSON)
-      body("""{"timezone": "America/New_York"}""")
+      body(UpdateTimezoneRequest("America/New_York"))
     } When { post("/api/timezone") } Then { statusCode(Response.Status.UNAUTHORIZED.statusCode) }
   }
 
@@ -59,7 +61,7 @@ class TimezoneResourceIT {
         Given {
           header("Authorization", "Bearer $token")
           contentType(ContentType.JSON)
-          body("""{"timezone": "America/New_York"}""")
+          body(UpdateTimezoneRequest("America/New_York"))
         } When
             {
               post("/api/timezone")
@@ -83,36 +85,45 @@ class TimezoneResourceIT {
   fun `update timezones returns 400 with invalid timezone`() {
     val token = GrizzlyServerExtension.loginAndGetToken()
 
-    Given {
-      header("Authorization", "Bearer $token")
-      contentType(ContentType.JSON)
-      body("""{"timezone": "Totally/Fake"}""")
-    } When
-        {
-          post("/api/timezone")
-        } Then
-        {
-          statusCode(Response.Status.BAD_REQUEST.statusCode)
-          body("status", equalTo("error"))
-          body("message", equalTo("Invalid timezone: Totally/Fake."))
-        }
+    val errorResponse =
+        Given {
+          header("Authorization", "Bearer $token")
+          contentType(ContentType.JSON)
+          body(UpdateTimezoneRequest("Totally/Fake"))
+        } When
+            {
+              post("/api/timezone")
+            } Then
+            {
+              statusCode(Response.Status.BAD_REQUEST.statusCode)
+            } Extract
+            {
+              `as`(ErrorResponse::class.java)
+            }
+
+    assertThat(errorResponse.message).contains("Invalid timezone: Totally/Fake")
   }
 
   @Test
   fun `update timezones returns 400 with empty timezone`() {
     val token = GrizzlyServerExtension.loginAndGetToken()
 
-    Given {
-      header("Authorization", "Bearer $token")
-      contentType(ContentType.JSON)
-      body("""{"timezone": ""}""")
-    } When
-        {
-          post("/api/timezone")
-        } Then
-        {
-          statusCode(Response.Status.BAD_REQUEST.statusCode)
-          body("status", equalTo("error"))
-        }
+    val errorResponse =
+        Given {
+          header("Authorization", "Bearer $token")
+          contentType(ContentType.JSON)
+          body(UpdateTimezoneRequest(""))
+        } When
+            {
+              post("/api/timezone")
+            } Then
+            {
+              statusCode(Response.Status.BAD_REQUEST.statusCode)
+            } Extract
+            {
+              `as`(ErrorResponse::class.java)
+            }
+
+    assertThat(errorResponse.message).contains("Invalid timezone: .")
   }
 }

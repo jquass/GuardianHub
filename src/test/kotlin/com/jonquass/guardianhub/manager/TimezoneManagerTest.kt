@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.errOrThrow
 import com.jonquass.guardianhub.core.getOrThrow
@@ -82,7 +83,8 @@ class TimezoneManagerTest {
 
   @Test
   fun `updateTimezones should return success for valid timezone`() {
-    every { ServiceStatusManager.restartServicesAsync(any()) } returns "test-task-id"
+    every { ServiceStatusManager.restartServicesAsyncResult(any()) } returns
+        Result.success("test-task-id")
 
     val result =
         TimezoneManager.updateTimezonesResult(UpdateTimezoneRequest(timezone = "America/New_York"))
@@ -95,7 +97,7 @@ class TimezoneManagerTest {
 
   @Test
   fun `updateTimezones should return error when restartServicesAsync throws`() {
-    every { ServiceStatusManager.restartServicesAsync(any()) } throws
+    every { ServiceStatusManager.restartServicesAsyncResult(any()) } throws
         RuntimeException("Docker error")
 
     val result =

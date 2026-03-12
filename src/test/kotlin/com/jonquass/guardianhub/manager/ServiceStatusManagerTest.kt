@@ -27,17 +27,20 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync should return a task id`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
+    val result = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole"))
 
-    assertThat(taskId).isNotBlank()
+    assertThat(result.isSuccess).isTrue()
+    assertThat(result.getOrThrow()).isNotBlank()
   }
 
   @Test
   fun `restartServicesAsync should return unique task ids for each call`() {
-    val taskId1 = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
-    val taskId2 = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
+    val result1 = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole"))
+    val result2 = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole"))
 
-    assertThat(taskId1).isNotEqualTo(taskId2)
+    assertThat(result1.isSuccess).isTrue()
+    assertThat(result2.isSuccess).isTrue()
+    assertThat(result1.getOrThrow()).isNotEqualTo(result2.getOrThrow())
   }
 
   @Test
@@ -47,11 +50,11 @@ class ServiceStatusManagerTest {
           Thread.sleep(200)
           Result.success()
         }
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
+    val result = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole"))
 
-    val result = ServiceStatusManager.getTaskStatus(taskId)
+    val status = ServiceStatusManager.getTaskStatus(result.getOrThrow())
 
-    assertThat(result.getOrThrow()?.status == "pending")
+    assertThat(status.getOrThrow()?.status == "pending")
   }
 
   @Test
@@ -61,7 +64,9 @@ class ServiceStatusManagerTest {
           Thread.sleep(200)
           Result.success()
         }
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole", "wireguard"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
 
     await(taskId)
 
@@ -80,14 +85,15 @@ class ServiceStatusManagerTest {
           Thread.sleep(200)
           Result.error()
         }
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
-
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole", "wireguard"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
     await(taskId)
 
-    val result = ServiceStatusManager.getTaskStatus(taskId)
+    val statusResult = ServiceStatusManager.getTaskStatus(taskId)
 
-    assertThat(result.isSuccess).isTrue()
-    val status = result.getOrThrow()
+    assertThat(statusResult.isSuccess).isTrue()
+    val status = statusResult.getOrThrow()
     assertThat(status?.status == "completed")
     assertThat(status?.servicesFailed).containsExactly("pihole", "wireguard")
   }
@@ -103,8 +109,9 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should return completed status after restart finishes`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
-
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole", "wireguard"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
     await(taskId)
 
     val result = ServiceStatusManager.getTaskStatus(taskId)
@@ -118,7 +125,10 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should reach progress 100 after all services processed`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard", "npm"))
+    val taskResult =
+        ServiceStatusManager.restartServicesAsyncResult(listOf("pihole", "wireguard", "npm"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
 
     await(taskId)
 
@@ -130,7 +140,9 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should call DockerManager once per service`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole", "wireguard"))
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole", "wireguard"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
 
     await(taskId)
 
@@ -139,7 +151,9 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `getTaskStatus should complete with empty service list`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(emptyList())
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(emptyList())
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
 
     await(taskId)
 
@@ -153,7 +167,9 @@ class ServiceStatusManagerTest {
 
   @Test
   fun `restartServicesAsync servicesRestarted is empty due to untracked exec result`() {
-    val taskId = ServiceStatusManager.restartServicesAsync(listOf("pihole"))
+    val taskResult = ServiceStatusManager.restartServicesAsyncResult(listOf("pihole"))
+    assertThat(taskResult.isSuccess).isTrue()
+    val taskId = taskResult.getOrThrow()
 
     await(taskId)
 

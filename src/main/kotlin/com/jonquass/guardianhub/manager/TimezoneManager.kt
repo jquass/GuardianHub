@@ -7,6 +7,7 @@ import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
 import com.jonquass.guardianhub.core.api.UpdateTimezoneResponse
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import jakarta.ws.rs.core.Response
 import java.time.ZoneId
 
@@ -30,18 +31,23 @@ object TimezoneManager : Loggable {
 
   fun updateTimezonesResult(request: UpdateTimezoneRequest): Result<UpdateTimezoneResponse> {
     return try {
-      val result = isValidTimezoneResult(request.timezone)
-      if (result.isError) {
+      val validaResult = isValidTimezoneResult(request.timezone)
+      if (validaResult.isError) {
         logger.warn("Invalid timezone attempted: {}", request.timezone)
-        return result.errOrThrow()
+        return validaResult.errOrThrow()
       }
 
       logger.info("Updating timezone to: {}", request.timezone)
       ConfigManager.upsertConfig(Env.TZ, request.timezone)
-      val taskId = ServiceStatusManager.restartServicesAsync(servicesToRestart)
+      val restartResult = ServiceStatusManager.restartServicesAsyncResult(servicesToRestart)
+      if (restartResult.isError) {
+        return restartResult.errOrThrow()
+      }
+
       Result.success(
           UpdateTimezoneResponse(
-              "Timezone updated to ${request.timezone}. Services are restarting.", taskId))
+              "Timezone updated to ${request.timezone}. Services are restarting.",
+              restartResult.getOrThrow()))
     } catch (e: Exception) {
       logger.error("Failed to update timezone: {}", e.message, e)
       Result.error("Failed to update timezone")

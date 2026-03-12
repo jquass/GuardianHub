@@ -25,6 +25,14 @@ class HealthCheckResource {
                   content = [Content(schema = Schema(implementation = StatusResponse::class))])])
   @Produces(MediaType.APPLICATION_JSON)
   fun status(): Response {
+<<<<<<< Updated upstream
     return Response.ok(StatusResponse()).build()
+=======
+    val response =
+        StatusResponse(
+            status = "healthy",
+        )
+    return Response.ok(response).build()
+>>>>>>> Stashed changes
   }
 }

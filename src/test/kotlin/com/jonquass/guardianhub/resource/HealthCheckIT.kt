@@ -18,7 +18,10 @@ class HealthCheckIT {
         {
           statusCode(Response.Status.OK.statusCode)
           body("status", equalTo("healthy"))
+<<<<<<< Updated upstream
           body("timestamp", lessThanOrEqualTo(System.currentTimeMillis()))
+=======
+>>>>>>> Stashed changes
         }
   }
 }

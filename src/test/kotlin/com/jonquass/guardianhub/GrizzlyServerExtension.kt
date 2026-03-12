@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub
 
+<<<<<<< Updated upstream
 import com.jonquass.guardianhub.config.ServerFactory
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.config.Env
@@ -13,6 +14,9 @@ import com.jonquass.guardianhub.manager.auth.SessionManager
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+=======
+import com.jonquass.guardianhub.config.ServerConfigFactory
+>>>>>>> Stashed changes
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
@@ -23,6 +27,10 @@ import jakarta.ws.rs.core.Response
 import java.io.File
 import java.time.ZoneId
 import org.glassfish.grizzly.http.server.HttpServer
+<<<<<<< Updated upstream
+=======
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory
+>>>>>>> Stashed changes
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -33,6 +41,7 @@ class GrizzlyServerExtension :
   companion object {
     private var started = false
     private var server: HttpServer? = null
+<<<<<<< Updated upstream
     private const val PORT = 9998
 
     internal const val TEST_PASSWORD = "password123"
@@ -57,17 +66,29 @@ class GrizzlyServerExtension :
             path("token")
           }
     }
+=======
+    const val BASE_URI = "http://localhost"
+    const val PORT = 9998
+>>>>>>> Stashed changes
   }
 
   override fun beforeAll(context: ExtensionContext) {
     if (!started) {
       started = true
 
+<<<<<<< Updated upstream
       configFile = File.createTempFile("test-env", ".env")
       factoryPasswordFile = File.createTempFile("test-factory", ".factory-password")
       serialNumberFile = File.createTempFile("test-serial", ".serial-number")
 
       writeTestFixtures()
+=======
+      val config = ServerConfigFactory.createResourceConfig(false)
+      server = GrizzlyHttpServerFactory.createHttpServer(
+        URI.create("$BASE_URI:$PORT/api/"), config
+      )
+      server?.start()
+>>>>>>> Stashed changes
 
       ConfigManager.configFile = configFile
       AuthManager.factoryPasswordFile = factoryPasswordFile
@@ -78,8 +99,14 @@ class GrizzlyServerExtension :
 
       RestAssured.baseURI = ServerFactory.API_BASE
       RestAssured.port = PORT
+      RestAssured.basePath = "/api"
 
+<<<<<<< Updated upstream
       context.root.getStore(ExtensionContext.Namespace.GLOBAL).put("grizzly-server", this)
+=======
+      context.root.getStore(ExtensionContext.Namespace.GLOBAL)
+        .put("grizzly-server", this)
+>>>>>>> Stashed changes
     }
   }
 
@@ -113,6 +140,7 @@ class GrizzlyServerExtension :
   }
 
   override fun close() {
+<<<<<<< Updated upstream
     unmockkAll()
     server?.shutdownNow()
     configFile.delete()
@@ -141,5 +169,8 @@ class GrizzlyServerExtension :
     ConfigManager.configFile = configFile
     AuthManager.factoryPasswordFile = factoryPasswordFile
     AuthManager.serialNumberFile = serialNumberFile
+=======
+    server?.shutdownNow()
+>>>>>>> Stashed changes
   }
 }

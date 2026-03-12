@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.GrizzlyServerExtension
+import com.jonquass.guardianhub.core.api.UpdatePasswordRequest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
@@ -16,7 +17,7 @@ class PasswordResourceIT {
   fun `pihole password update returns 401 without auth`() {
     Given {
       contentType(ContentType.JSON)
-      body("""{"password": "piholePassword"}""")
+      body(UpdatePasswordRequest("piholePassword"))
     } When
         {
           post("/api/password/pihole")
@@ -33,11 +34,7 @@ class PasswordResourceIT {
     Given {
       contentType(ContentType.JSON)
       header("Authorization", "Bearer $token")
-      body(
-          """
-              {"password": "piholePassword"}
-              """
-              .trimIndent())
+      body(UpdatePasswordRequest("piholePassword"))
     } When { post("/api/password/pihole") } Then { statusCode(Response.Status.OK.statusCode) }
   }
 
@@ -45,7 +42,7 @@ class PasswordResourceIT {
   fun `wireguard password update returns 401 without auth`() {
     Given {
       contentType(ContentType.JSON)
-      body("""{"password": "wireguardPassword"}""")
+      body(UpdatePasswordRequest("wireguardPassword"))
     } When
         {
           post("/api/password/wireguard")
@@ -62,11 +59,7 @@ class PasswordResourceIT {
     Given {
       contentType(ContentType.JSON)
       header("Authorization", "Bearer $token")
-      body(
-          """
-              {"password": "wireguardPassword"}
-              """
-              .trimIndent())
+      body(UpdatePasswordRequest("wireguardPassword"))
     } When { post("/api/password/wireguard") } Then { statusCode(Response.Status.OK.statusCode) }
   }
 
@@ -74,7 +67,7 @@ class PasswordResourceIT {
   fun `npm password update returns 401 without auth`() {
     Given {
       contentType(ContentType.JSON)
-      body("""{"password": "npmPassword"}""")
+      body(UpdatePasswordRequest("npmPassword"))
     } When
         {
           post("/api/password/npm")
@@ -91,11 +84,7 @@ class PasswordResourceIT {
     Given {
       contentType(ContentType.JSON)
       header("Authorization", "Bearer $token")
-      body(
-          """
-              {"password": "npmPassword"}
-              """
-              .trimIndent())
+      body(UpdatePasswordRequest("npmPassword"))
     } When { post("/api/password/npm") } Then { statusCode(Response.Status.OK.statusCode) }
   }
 }

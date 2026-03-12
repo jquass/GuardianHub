@@ -41,14 +41,14 @@ class AuthManagerTest {
     AuthManager.serialNumberFile = serialNumberFile
 
     // Write a default login password hash to the config file
-    val passwordHash = PasswordHashManager.hashPassword(password)
+    val passwordHash = PasswordHashManager.hashPasswordResult(password).getOrThrow()
     configFile.writeText("LOGIN_PASSWORD='$passwordHash'\n")
 
     // Write a default factory password hash
-    factoryPasswordFile.writeText(PasswordHashManager.hashPassword(password))
+    factoryPasswordFile.writeText(PasswordHashManager.hashPasswordResult(password).getOrThrow())
 
     // Write a default serial number hash
-    serialNumberFile.writeText(PasswordHashManager.hashPassword(serialNumber))
+    serialNumberFile.writeText(PasswordHashManager.hashPasswordResult(serialNumber).getOrThrow())
   }
 
   @AfterEach

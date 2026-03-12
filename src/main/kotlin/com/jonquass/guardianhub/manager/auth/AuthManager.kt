@@ -116,7 +116,7 @@ object AuthManager : Loggable {
     }
 
     val loginPasswordHash = loginPasswordHashResult.getOrThrow()
-    return PasswordHashManager.verifyHash(password, loginPasswordHash)
+    return PasswordHashManager.verifyHash(password, loginPasswordHash).isSuccess
   }
 
   private fun validateFactoryPassword(password: String): Boolean {
@@ -126,7 +126,7 @@ object AuthManager : Loggable {
     }
 
     val factoryPasswordHash = factoryPasswordFile.readText().trim()
-    return PasswordHashManager.verifyHash(password, factoryPasswordHash)
+    return PasswordHashManager.verifyHash(password, factoryPasswordHash).isSuccess
   }
 
   private fun validateSerialNumber(serial: String): Boolean {
@@ -136,7 +136,7 @@ object AuthManager : Loggable {
     }
 
     val serialHash = serialNumberFile.readText().trim()
-    return PasswordHashManager.verifyHash(serial, serialHash)
+    return PasswordHashManager.verifyHash(serial, serialHash).isSuccess
   }
 
   private fun resetToFactory(
@@ -186,9 +186,12 @@ object AuthManager : Loggable {
         return false
       }
 
-      val newPasswordHash = PasswordHashManager.hashPassword(newPassword)
+      val hashResult = PasswordHashManager.hashPasswordResult(newPassword)
+      if (hashResult.isError) {
+        return false
+      }
 
-      ConfigManager.upsertConfig(Env.LOGIN_PASSWORD, newPasswordHash)
+      ConfigManager.upsertConfig(Env.LOGIN_PASSWORD, hashResult.getOrThrow())
 
       logger.info("Login password changed successfully")
       true

@@ -22,14 +22,6 @@ class SessionManagerTest {
     SessionManager.invalidateSessions()
   }
 
-  private fun insertExpiredSession(token: String) {
-    val sessionsField = SessionManager::class.java.getDeclaredField("sessions")
-    sessionsField.isAccessible = true
-    @Suppress("UNCHECKED_CAST")
-    val sessions = sessionsField.get(SessionManager) as ConcurrentHashMap<String, Long>
-    sessions[token] = System.currentTimeMillis() - 1000L // already expired
-  }
-
   @Test
   fun `createSession should generate unique token`() {
     val token = SessionManager.createSession()
@@ -94,7 +86,11 @@ class SessionManagerTest {
   @Test
   fun `isValidSession should return false and remove token when session is expired`() {
     val token = UUID.randomUUID().toString()
-    insertExpiredSession(token)
+    val sessionsField = SessionManager::class.java.getDeclaredField("sessions")
+    sessionsField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    val sessions = sessionsField.get(SessionManager) as ConcurrentHashMap<String, Long>
+    sessions[token] = System.currentTimeMillis() - 1000L // already expired
 
     val result = SessionManager.isValidSession(token)
 

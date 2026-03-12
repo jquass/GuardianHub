@@ -350,4 +350,47 @@ class AuthManagerTest {
 
     assertThat("Simulated failure").isEqualTo(exception.message)
   }
+
+  @Test
+  fun `getToken should return error when auth header is null`() {
+    val result = AuthManager.getToken(null)
+    assertThat(result.isError).isTrue()
+    val error = result.errOrThrow()
+    assertThat(error.message).isEqualTo("Missing or empty Authorization header")
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `getToken should return error when auth header is empty`() {
+    val result = AuthManager.getToken("")
+    assertThat(result.isError).isTrue()
+    val error = result.errOrThrow()
+    assertThat(error.message).isEqualTo("Missing or empty Authorization header")
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `getToken should return error when auth header is only Bearer prefix`() {
+    val result = AuthManager.getToken("Bearer ")
+    assertThat(result.isError).isTrue()
+    val error = result.errOrThrow()
+    assertThat(error.message).isEqualTo("Missing or empty Authorization header")
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `getToken should return success with token stripped of Bearer prefix`() {
+    val result = AuthManager.getToken("Bearer valid-token")
+    assertThat(result.isSuccess).isTrue()
+    val token = result.getOrThrow()
+    assertThat(token).isEqualTo("valid-token")
+  }
+
+  @Test
+  fun `getToken should return success and trim whitespace from token`() {
+    val result = AuthManager.getToken("Bearer   valid-token   ")
+    assertThat(result.isSuccess).isTrue()
+    val token = result.getOrThrow()
+    assertThat(token).isEqualTo("valid-token")
+  }
 }

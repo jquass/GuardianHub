@@ -1,6 +1,8 @@
 package com.jonquass.guardianhub.filter
 
 import com.jonquass.guardianhub.config.Loggable
+import com.jonquass.guardianhub.core.errOrThrow
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import com.jonquass.guardianhub.manager.auth.SessionManager
 import jakarta.ws.rs.container.ContainerRequestContext
@@ -20,7 +22,6 @@ class AuthFilter : ContainerRequestFilter, Loggable {
 
     logger.debug("Request: {} {}", method, path)
 
-    // Check if this is a public path
     if (isPublicPath(path)) {
       logger.debug("Public path allowed: {}", path)
       return
@@ -28,15 +29,15 @@ class AuthFilter : ContainerRequestFilter, Loggable {
 
     // All other paths require authentication
     val authHeader = requestContext.getHeaderString("Authorization")
-    val token = AuthManager.getToken(authHeader)
+    val result = AuthManager.getToken(authHeader)
 
-    if (token.isNullOrEmpty()) {
-      logger.warn("No auth token provided for: {}", path)
+    if (result.isError) {
+      logger.warn("No auth token provided for: {} : {}", path, result.errOrThrow().message)
       abortWithUnauthorized(requestContext, "No authentication token provided")
       return
     }
 
-    if (!SessionManager.isValidSession(token)) {
+    if (!SessionManager.isValidSession(result.getOrThrow())) {
       logger.warn("Invalid or expired token for: {}", path)
       abortWithUnauthorized(requestContext, "Invalid or expired authentication token")
       return

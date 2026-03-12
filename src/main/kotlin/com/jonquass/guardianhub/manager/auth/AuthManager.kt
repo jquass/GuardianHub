@@ -4,9 +4,12 @@ import com.jonquass.guardianhub.config.Loggable
 import com.jonquass.guardianhub.core.ExcludeManagerCheck
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
+import com.jonquass.guardianhub.core.auth.ChangePasswordResponse
+import com.jonquass.guardianhub.core.auth.CheckAuthResponse
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.LoginResponse
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.auth.ResetToFactoryResponse
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.ConfigManager
@@ -33,7 +36,7 @@ object AuthManager : Loggable {
     }
   }
 
-  fun resetToFactory(request: ResetToFactoryRequest): Result<Map<String, Any>> {
+  fun resetToFactory(request: ResetToFactoryRequest): Result<ResetToFactoryResponse> {
     val success =
         resetToFactory(
             request.factoryPassword,
@@ -41,12 +44,7 @@ object AuthManager : Loggable {
         )
 
     if (success) {
-      return Result.success(
-          mapOf(
-              "success" to true,
-              "message" to "Password reset to factory default",
-          ),
-      )
+      return Result.success(ResetToFactoryResponse("Password reset to factory default"))
     }
 
     return Result.error(
@@ -58,7 +56,7 @@ object AuthManager : Loggable {
   fun changePassword(
       authHeader: String?,
       request: ChangePasswordRequest,
-  ): Result<Map<String, Any>> {
+  ): Result<ChangePasswordResponse> {
     val isAuthValid = isAuthValid(authHeader)
     if (!isAuthValid) {
       return Result.error("Unauthorized", Response.Status.UNAUTHORIZED)
@@ -71,12 +69,7 @@ object AuthManager : Loggable {
             request.serialNumber,
         )
     if (success) {
-      return Result.success(
-          mapOf(
-              "success" to true,
-              "message" to "Login password changed successfully",
-          ),
-      )
+      return Result.success(ChangePasswordResponse("Login password changed successfully"))
     }
 
     return Result.error(
@@ -85,17 +78,17 @@ object AuthManager : Loggable {
     )
   }
 
-  fun logout(authHeader: String?): Result<Map<String, Any>> {
+  fun logout(authHeader: String?): Result<Unit> {
     val token = getToken(authHeader)
     if (token != null) {
       SessionManager.invalidateSession(token)
     }
-    return Result.success(mapOf("success" to true))
+    return Result.success()
   }
 
-  fun checkAuth(authHeader: String?): Result<Map<String, Any>> {
+  fun checkAuth(authHeader: String?): Result<CheckAuthResponse> {
     val isAuthValid = isAuthValid(authHeader)
-    return Result.success(mapOf("authenticated" to isAuthValid))
+    return Result.success(CheckAuthResponse(isAuthValid))
   }
 
   @ExcludeManagerCheck

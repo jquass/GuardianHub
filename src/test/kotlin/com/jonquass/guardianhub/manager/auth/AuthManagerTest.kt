@@ -13,7 +13,6 @@ import io.mockk.unmockkAll
 import jakarta.ws.rs.core.Response
 import java.io.File
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.data.MapEntry.entry
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -98,8 +97,8 @@ class AuthManagerTest {
 
     val checkResult = AuthManager.checkAuth("Bearer $token")
     assertTrue(checkResult.isSuccess)
-    val entries = checkResult.getOrThrow().entries
-    assertThat(entries).containsExactly(entry("authenticated", false))
+    val response = checkResult.getOrThrow()
+    assertThat(response.authenticated).isFalse
   }
 
   @Test
@@ -118,8 +117,8 @@ class AuthManagerTest {
     val checkResult = AuthManager.checkAuth("Bearer $token")
 
     assertTrue(checkResult.isSuccess)
-    val entries = checkResult.getOrThrow().entries
-    assertThat(entries).containsExactly(entry("authenticated", true))
+    val response = checkResult.getOrThrow()
+    assertThat(response.authenticated).isTrue
   }
 
   @Test
@@ -127,8 +126,8 @@ class AuthManagerTest {
     val checkResult = AuthManager.checkAuth("Bearer invalid-token")
 
     assertTrue(checkResult.isSuccess)
-    val entries = checkResult.getOrThrow().entries
-    assertThat(entries).containsExactly(entry("authenticated", false))
+    val response = checkResult.getOrThrow()
+    assertThat(response.authenticated).isFalse
   }
 
   @Test
@@ -136,8 +135,8 @@ class AuthManagerTest {
     val checkResult = AuthManager.checkAuth(null)
 
     assertTrue(checkResult.isSuccess)
-    val entries = checkResult.getOrThrow().entries
-    assertThat(entries).containsExactly(entry("authenticated", false))
+    val response = checkResult.getOrThrow()
+    assertThat(response.authenticated).isFalse
   }
 
   @Test
@@ -268,8 +267,8 @@ class AuthManagerTest {
 
     val checkResult = AuthManager.checkAuth("Bearer $token")
     assertTrue(checkResult.isSuccess)
-    val entries = checkResult.getOrThrow().entries
-    assertThat(entries).containsExactly(entry("authenticated", false))
+    val response = checkResult.getOrThrow()
+    assertThat(response.authenticated).isFalse
   }
 
   @Test

@@ -2,6 +2,7 @@ package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.core.api.TimezoneResponse
 import com.jonquass.guardianhub.core.api.UpdateTimezoneRequest
+import com.jonquass.guardianhub.core.api.UpdateTimezoneResponse
 import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.TimezoneManager
 import io.swagger.v3.oas.annotations.Operation
@@ -34,7 +35,15 @@ class TimezoneResource {
 
   @POST
   @Operation(
-      summary = "Update system timezone.", security = [SecurityRequirement(name = "bearerAuth")])
+      summary = "Update system timezone.",
+      security = [SecurityRequirement(name = "bearerAuth")],
+      responses =
+          [
+              ApiResponse(
+                  responseCode = "200",
+                  description = "Updated system timezone successfully",
+                  content =
+                      [Content(schema = Schema(implementation = UpdateTimezoneResponse::class))])])
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   fun updateTimezone(request: UpdateTimezoneRequest): Response =

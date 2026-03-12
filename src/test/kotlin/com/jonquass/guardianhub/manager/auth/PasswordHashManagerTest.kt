@@ -1,16 +1,15 @@
 package com.jonquass.guardianhub.manager.auth
 
 import at.favre.lib.crypto.bcrypt.BCrypt
+import com.jonquass.guardianhub.core.getOrThrow
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
-import java.util.concurrent.ConcurrentHashMap
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertThrows
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PasswordHashManagerTest {
@@ -21,17 +20,9 @@ class PasswordHashManagerTest {
     unmockkAll()
   }
 
-  private fun insertExpiredSession(token: String) {
-    val sessionsField = SessionManager::class.java.getDeclaredField("sessions")
-    sessionsField.isAccessible = true
-    @Suppress("UNCHECKED_CAST")
-    val sessions = sessionsField.get(SessionManager) as ConcurrentHashMap<String, Long>
-    sessions[token] = System.currentTimeMillis() - 1000L // already expired
-  }
-
   @Test
   fun `hashPassword should create valid bcrypt hash`() {
-    val hash = PasswordHashManager.hashPassword(password)
+    val hash = PasswordHashManager.hashPasswordResult(password).getOrThrow()
 
     assertTrue(hash.startsWith("\$2a\$") || hash.startsWith("\$2b\$"))
     assertTrue(hash.length == 60)
@@ -39,8 +30,8 @@ class PasswordHashManagerTest {
 
   @Test
   fun `hashPassword should create different hashes for same password`() {
-    val hash1 = PasswordHashManager.hashPassword(password)
-    val hash2 = PasswordHashManager.hashPassword(password)
+    val hash1 = PasswordHashManager.hashPasswordResult(password).getOrThrow()
+    val hash2 = PasswordHashManager.hashPasswordResult(password).getOrThrow()
 
     assertTrue(hash1 != hash2)
     assertTrue(hash1.startsWith("\$2a\$") || hash1.startsWith("\$2b\$"))
@@ -49,20 +40,20 @@ class PasswordHashManagerTest {
 
   @Test
   fun `verifyHash should work on hashed password`() {
-    val hash = PasswordHashManager.hashPassword(password)
+    val hash = PasswordHashManager.hashPasswordResult(password).getOrThrow()
 
-    val validHash = PasswordHashManager.verifyHash(password, hash)
+    val result = PasswordHashManager.verifyHash(password, hash)
 
-    assertTrue(validHash)
+    assertThat(result.isSuccess).isTrue()
   }
 
   @Test
   fun `verifyHash should not work on different passwords`() {
-    val hash = PasswordHashManager.hashPassword(password)
+    val hash = PasswordHashManager.hashPasswordResult(password).getOrThrow()
 
-    val validHash = PasswordHashManager.verifyHash("AnotherPassword", hash)
+    val result = PasswordHashManager.verifyHash("AnotherPassword", hash)
 
-    assertFalse(validHash)
+    assertThat(result.isError).isTrue()
   }
 
   @Test
@@ -72,15 +63,14 @@ class PasswordHashManagerTest {
 
     val result = PasswordHashManager.verifyHash("anyPassword", "\$2a\$10\$invalidhash")
 
-    assertFalse(result)
+    assertThat(result.isError).isTrue()
   }
 
   @Test
   fun `verifyHash should return false when hash is malformed and causes exception`() {
-    // Malformed hash that causes BCrypt to throw internally without mocking
     val result = PasswordHashManager.verifyHash("anyPassword", "not-a-valid-bcrypt-hash")
 
-    assertFalse(result)
+    assertThat(result.isError).isTrue()
   }
 
   @Test
@@ -88,9 +78,8 @@ class PasswordHashManagerTest {
     mockkStatic(BCrypt::class)
     every { BCrypt.withDefaults() } throws IllegalStateException("Illegal state")
 
-    val exception =
-        assertThrows<IllegalStateException> { PasswordHashManager.hashPassword("anyPassword") }
+    val result = PasswordHashManager.hashPasswordResult("anyPassword")
 
-    assert(exception.message == "Illegal state")
+    assertThat(result.isError).isTrue()
   }
 }

@@ -38,13 +38,7 @@ object PasswordManager : Loggable {
       )
     }
 
-    return Result.success(
-        UpdatePasswordResponse(
-            status = "success",
-            message = "Pi-hole password updated successfully",
-            serviceRestarted = false,
-        ),
-    )
+    return Result.success(UpdatePasswordResponse("Pi-hole password updated successfully", false))
   }
 
   fun updateWireGuardPassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
@@ -66,12 +60,7 @@ object PasswordManager : Loggable {
     logger.info("WireGuard recreated: {}", recreated)
 
     return Result.success(
-        UpdatePasswordResponse(
-            status = "success",
-            message = "WireGuard password updated successfully",
-            serviceRestarted = recreated,
-        ),
-    )
+        UpdatePasswordResponse("WireGuard password updated successfully", recreated))
   }
 
   fun updateNpmPassword(request: UpdatePasswordRequest): Result<UpdatePasswordResponse> {
@@ -116,13 +105,7 @@ object PasswordManager : Loggable {
 
     ConfigManager.upsertConfig(Env.NPM_ADMIN_PASSWORD, request.password)
 
-    return Result.success(
-        UpdatePasswordResponse(
-            status = "success",
-            message = "NPM password updated successfully",
-            serviceRestarted = false,
-        ),
-    )
+    return Result.success(UpdatePasswordResponse("NPM password updated successfully", false))
   }
 
   private fun fetchNpmToken(

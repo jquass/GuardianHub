@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager.auth
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.api.auth.LoginRequest
 import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
@@ -41,14 +42,14 @@ class AuthManagerTest {
     AuthManager.serialNumberFile = serialNumberFile
 
     // Write a default login password hash to the config file
-    val passwordHash = PasswordHashManager.hashPassword(password)
+    val passwordHash = PasswordHashManager.hashPasswordResult(password).getOrThrow()
     configFile.writeText("LOGIN_PASSWORD='$passwordHash'\n")
 
     // Write a default factory password hash
-    factoryPasswordFile.writeText(PasswordHashManager.hashPassword(password))
+    factoryPasswordFile.writeText(PasswordHashManager.hashPasswordResult(password).getOrThrow())
 
     // Write a default serial number hash
-    serialNumberFile.writeText(PasswordHashManager.hashPassword(serialNumber))
+    serialNumberFile.writeText(PasswordHashManager.hashPasswordResult(serialNumber).getOrThrow())
   }
 
   @AfterEach
@@ -228,6 +229,42 @@ class AuthManagerTest {
 
     assertTrue(result.isError)
     assertThat(result.errOrThrow().code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `changePassword should fail if hashPasswordResult fails`() {
+    mockkObject(AuthManager)
+    every { AuthManager.changePassword(any(), any(), any()) } returns false
+    val loginResult = AuthManager.login(LoginRequest(password))
+    assertTrue(loginResult.isSuccess)
+    val token = loginResult.getOrThrow().token
+
+    val result =
+        AuthManager.changePassword(
+            "Bearer $token",
+            ChangePasswordRequest(password, "NewPassword123", serialNumber),
+        )
+
+    assertTrue(result.isError)
+    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.BAD_REQUEST)
+  }
+
+  @Test
+  fun `changePassword should return false when hashing fails`() {
+    mockkObject(PasswordHashManager)
+    every { PasswordHashManager.verifyHash(any(), any()) } returns Result.success()
+    every { PasswordHashManager.hashPasswordResult(any()) } returns Result.error("hashing failed")
+
+    AuthManager.serialNumberFile.writeText("hash")
+
+    val result =
+        AuthManager.changePassword(
+            currentPassword = "currentPassword",
+            newPassword = "newPassword123",
+            serialNumber = "serialNumber",
+        )
+
+    assertThat(result).isFalse()
   }
 
   @Test

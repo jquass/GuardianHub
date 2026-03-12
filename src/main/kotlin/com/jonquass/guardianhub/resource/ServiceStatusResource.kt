@@ -29,7 +29,12 @@ class ServiceStatusResource {
                   responseCode = "200",
                   description = "Fetched task status successfully",
                   content =
-                      [Content(schema = Schema(implementation = ServiceStatusResponse::class))])])
+                      [
+                          Content(
+                              schema =
+                                  Schema(
+                                      implementation = ServiceStatusResponse::class,
+                                      nullable = true))])])
   @Produces(MediaType.APPLICATION_JSON)
   fun getTaskStatus(
       @PathParam("taskId") taskId: String,

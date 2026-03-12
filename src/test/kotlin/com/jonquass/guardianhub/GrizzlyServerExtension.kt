@@ -3,6 +3,7 @@ package com.jonquass.guardianhub
 import com.jonquass.guardianhub.config.ServerFactory
 import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.config.Env
+import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.ConfigManager
 import com.jonquass.guardianhub.manager.DockerManager
 import com.jonquass.guardianhub.manager.ServiceStatusManager
@@ -124,7 +125,7 @@ class GrizzlyServerExtension :
   }
 
   private fun writeTestFixtures() {
-    val passwordHash = PasswordHashManager.hashPassword(TEST_PASSWORD)
+    val passwordHash = PasswordHashManager.hashPasswordResult(TEST_PASSWORD).getOrThrow()
     configFile.writeText(
         """
       ${Env.LOGIN_PASSWORD}='$passwordHash'
@@ -134,7 +135,8 @@ class GrizzlyServerExtension :
       """
             .trimIndent())
     factoryPasswordFile.writeText(passwordHash)
-    serialNumberFile.writeText(PasswordHashManager.hashPassword(TEST_SERIAL_NUMBER))
+    serialNumberFile.writeText(
+        PasswordHashManager.hashPasswordResult(TEST_SERIAL_NUMBER).getOrThrow())
 
     ConfigManager.configFile = configFile
     AuthManager.factoryPasswordFile = factoryPasswordFile

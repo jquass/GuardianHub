@@ -1,9 +1,11 @@
 package com.jonquass.guardianhub.resource
 
 import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
+import com.jonquass.guardianhub.core.auth.CheckAuthResponse
 import com.jonquass.guardianhub.core.auth.LoginRequest
 import com.jonquass.guardianhub.core.auth.LoginResponse
 import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.auth.ResetToFactoryResponse
 import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import io.swagger.v3.oas.annotations.Operation
@@ -38,7 +40,15 @@ class AuthResource {
 
   @POST
   @Path("/reset-to-factory")
-  @Operation(summary = "Reset Login Password to Factory Default")
+  @Operation(
+      summary = "Reset Login Password to Factory Default",
+      responses =
+          [
+              ApiResponse(
+                  responseCode = "200",
+                  description = "Reset factory password successfully",
+                  content =
+                      [Content(schema = Schema(implementation = ResetToFactoryResponse::class))])])
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   fun resetToFactory(request: ResetToFactoryRequest): Response =
@@ -47,7 +57,15 @@ class AuthResource {
   @POST
   @Path("/change-password")
   @Operation(
-      summary = "Change Login Password", security = [SecurityRequirement(name = "bearerAuth")])
+      summary = "Change Login Password",
+      security = [SecurityRequirement(name = "bearerAuth")],
+      responses =
+          [
+              ApiResponse(
+                  responseCode = "200",
+                  description = "Login password changed successfully",
+                  content =
+                      [Content(schema = Schema(implementation = ResetToFactoryResponse::class))])])
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   fun changePassword(
@@ -57,7 +75,14 @@ class AuthResource {
 
   @POST
   @Path("/logout")
-  @Operation(summary = "Logout")
+  @Operation(
+      summary = "Logout",
+      responses =
+          [
+              ApiResponse(
+                  responseCode = "200",
+                  description = "Logged out successfully",
+                  content = [Content(schema = Schema(implementation = Unit::class))])])
   @Produces(MediaType.APPLICATION_JSON)
   fun logout(
       @HeaderParam("Authorization") authHeader: String?,
@@ -65,7 +90,14 @@ class AuthResource {
 
   @GET
   @Path("/check")
-  @Operation(summary = "Check Auth Token")
+  @Operation(
+      summary = "Check Auth Token",
+      responses =
+          [
+              ApiResponse(
+                  responseCode = "200",
+                  description = "Auth token checked successfully",
+                  content = [Content(schema = Schema(implementation = CheckAuthResponse::class))])])
   @Produces(MediaType.APPLICATION_JSON)
   fun checkAuth(
       @HeaderParam("Authorization") authHeader: String?,

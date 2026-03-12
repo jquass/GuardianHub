@@ -1,6 +1,7 @@
 package com.jonquass.guardianhub.core
 
 import com.jonquass.guardianhub.core.Result.Companion.DEFAULT_ERROR
+import com.jonquass.guardianhub.core.api.ErrorResponse
 import com.jonquass.guardianhub.core.exception.ResultException
 import jakarta.ws.rs.core.Response
 
@@ -57,7 +58,7 @@ fun <T> Result<T>.toResponse(): Response =
       is Result.Success -> Response.ok(this.data).build()
       is Result.Error -> {
         val message = this.message ?: DEFAULT_ERROR
-        Response.status(this.code).entity(mapOf("status" to "error", "message" to message)).build()
+        Response.status(this.code).entity(ErrorResponse(message)).build()
       }
     }
 

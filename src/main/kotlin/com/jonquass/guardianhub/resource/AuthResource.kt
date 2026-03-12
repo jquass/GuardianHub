@@ -1,11 +1,11 @@
 package com.jonquass.guardianhub.resource
 
-import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
-import com.jonquass.guardianhub.core.auth.CheckAuthResponse
-import com.jonquass.guardianhub.core.auth.LoginRequest
-import com.jonquass.guardianhub.core.auth.LoginResponse
-import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
-import com.jonquass.guardianhub.core.auth.ResetToFactoryResponse
+import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
+import com.jonquass.guardianhub.core.api.auth.CheckAuthResponse
+import com.jonquass.guardianhub.core.api.auth.LoginRequest
+import com.jonquass.guardianhub.core.api.auth.LoginResponse
+import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.api.auth.ResetToFactoryResponse
 import com.jonquass.guardianhub.core.toResponse
 import com.jonquass.guardianhub.manager.auth.AuthManager
 import io.swagger.v3.oas.annotations.Operation

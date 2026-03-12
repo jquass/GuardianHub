@@ -1,4 +1,4 @@
-package com.jonquass.guardianhub.core.auth
+package com.jonquass.guardianhub.core.api.auth
 
 data class ResetToFactoryRequest(
     val factoryPassword: String,

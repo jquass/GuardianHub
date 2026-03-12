@@ -1,5 +1,6 @@
 package com.jonquass.guardianhub.manager.auth
 
+import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.api.auth.LoginRequest
 import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
@@ -246,6 +247,23 @@ class AuthManagerTest {
 
     assertTrue(result.isError)
     assertThat(result.errOrThrow().code).isEqualTo(Response.Status.BAD_REQUEST)
+  }
+
+  @Test
+  fun `changePassword should return false when hashing fails`() {
+    mockkObject(PasswordHashManager)
+    every { PasswordHashManager.verifyHash(any(), any()) } returns Result.success()
+    every { PasswordHashManager.hashPasswordResult(any()) } returns Result.error("hashing failed")
+
+    AuthManager.serialNumberFile.writeText("hash")
+
+    val result = AuthManager.changePassword(
+      currentPassword = "currentPassword",
+      newPassword = "newPassword123",
+      serialNumber = "serialNumber",
+    )
+
+    assertThat(result).isFalse()
   }
 
   @Test

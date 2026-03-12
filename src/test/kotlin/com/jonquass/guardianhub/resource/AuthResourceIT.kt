@@ -3,11 +3,11 @@ package com.jonquass.guardianhub.resource
 import com.jonquass.guardianhub.GrizzlyServerExtension
 import com.jonquass.guardianhub.GrizzlyServerExtension.Companion.TEST_PASSWORD
 import com.jonquass.guardianhub.GrizzlyServerExtension.Companion.TEST_SERIAL_NUMBER
-import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
-import com.jonquass.guardianhub.core.auth.CheckAuthResponse
-import com.jonquass.guardianhub.core.auth.LoginRequest
-import com.jonquass.guardianhub.core.auth.LoginResponse
-import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
+import com.jonquass.guardianhub.core.api.auth.CheckAuthResponse
+import com.jonquass.guardianhub.core.api.auth.LoginRequest
+import com.jonquass.guardianhub.core.api.auth.LoginResponse
+import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
 import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Extract
 import io.restassured.module.kotlin.extensions.Given

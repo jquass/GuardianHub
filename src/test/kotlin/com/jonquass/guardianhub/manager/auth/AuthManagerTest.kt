@@ -1,8 +1,8 @@
 package com.jonquass.guardianhub.manager.auth
 
-import com.jonquass.guardianhub.core.auth.ChangePasswordRequest
-import com.jonquass.guardianhub.core.auth.LoginRequest
-import com.jonquass.guardianhub.core.auth.ResetToFactoryRequest
+import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
+import com.jonquass.guardianhub.core.api.auth.LoginRequest
+import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.errOrThrow
 import com.jonquass.guardianhub.core.getOrThrow

@@ -12,8 +12,6 @@ import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import jakarta.ws.rs.core.Response
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -68,17 +66,14 @@ class TimezoneResourceIT {
             } Then
             {
               statusCode(Response.Status.OK.statusCode)
-              body("taskId", notNullValue())
-              body(
-                  "message",
-                  equalTo("Timezone updated to America/New_York. Services are restarting."))
             } Extract
             {
               `as`(UpdateTimezoneResponse::class.java)
             }
 
     assertThat(response.taskId).isNotBlank()
-    assertThat(response.message).contains("America/New_York")
+    assertThat(response.message)
+        .isEqualTo("Timezone updated to America/New_York. Services are restarting.")
   }
 
   @Test

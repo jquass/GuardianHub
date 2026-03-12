@@ -165,7 +165,7 @@ object AuthManager : Loggable {
     }
   }
 
-  private fun changePassword(
+  internal fun changePassword(
       currentPassword: String,
       newPassword: String,
       serialNumber: String,

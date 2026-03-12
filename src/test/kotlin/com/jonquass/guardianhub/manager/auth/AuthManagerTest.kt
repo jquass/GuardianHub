@@ -1,6 +1,5 @@
 package com.jonquass.guardianhub.manager.auth
 
-import com.jonquass.guardianhub.core.Result
 import com.jonquass.guardianhub.core.api.auth.ChangePasswordRequest
 import com.jonquass.guardianhub.core.api.auth.LoginRequest
 import com.jonquass.guardianhub.core.api.auth.ResetToFactoryRequest
@@ -234,16 +233,19 @@ class AuthManagerTest {
   @Test
   fun `changePassword should fail if hashPasswordResult fails`() {
     mockkObject(AuthManager)
-    every { AuthManager.changePassword(any(), any()) } returns Result.error()
+    every { AuthManager.changePassword(any(), any(), any()) } returns false
+    val loginResult = AuthManager.login(LoginRequest(password))
+    assertTrue(loginResult.isSuccess)
+    val token = loginResult.getOrThrow().token
 
     val result =
         AuthManager.changePassword(
-            "Bearer invalid-token",
+            "Bearer $token",
             ChangePasswordRequest(password, "NewPassword123", serialNumber),
         )
 
     assertTrue(result.isError)
-    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR)
+    assertThat(result.errOrThrow().code).isEqualTo(Response.Status.BAD_REQUEST)
   }
 
   @Test

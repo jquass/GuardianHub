@@ -135,4 +135,38 @@ class ResultTest {
     assertThat(body["status"]).isEqualTo("error")
     assertThat(body["message"]).isEqualTo("bad input")
   }
+
+  // --- orError ---
+
+  @Test
+  fun `orError should return Success when string is not null or empty`() {
+    val result = "valid-token".orError("Missing token")
+    assertThat(result.isSuccess).isTrue()
+    assertThat((result as Result.Success).data).isEqualTo("valid-token")
+  }
+
+  @Test
+  fun `orError should return Error when string is null`() {
+    val result = null.orError("Missing token", Response.Status.UNAUTHORIZED)
+    assertThat(result.isError).isTrue()
+    val error = result as Result.Error
+    assertThat(error.message).isEqualTo("Missing token")
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `orError should return Error when string is empty`() {
+    val result = "".orError("Missing token", Response.Status.UNAUTHORIZED)
+    assertThat(result.isError).isTrue()
+    val error = result as Result.Error
+    assertThat(error.message).isEqualTo("Missing token")
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
+
+  @Test
+  fun `orError should use default status code when not provided`() {
+    val result = null.orError("Missing token")
+    val error = result as Result.Error
+    assertThat(error.code).isEqualTo(Response.Status.UNAUTHORIZED)
+  }
 }

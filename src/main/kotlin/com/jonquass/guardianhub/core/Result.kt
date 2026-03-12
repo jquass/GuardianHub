@@ -61,7 +61,11 @@ fun <T> Result<T>.toResponse(): Response =
       }
     }
 
-fun <T> T?.orError(
+fun String?.orError(
     errorMessage: String? = null,
     code: Response.Status = Response.Status.UNAUTHORIZED,
-): Result<T> = if (this != null) Result.success(this) else Result.error(errorMessage, code)
+): Result<String> = if (!this.isNullOrEmpty()) {
+    Result.success(this)
+} else {
+    Result.error(errorMessage, code)
+}

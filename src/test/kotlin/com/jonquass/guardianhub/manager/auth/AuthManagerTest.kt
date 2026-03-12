@@ -257,11 +257,12 @@ class AuthManagerTest {
 
     AuthManager.serialNumberFile.writeText("hash")
 
-    val result = AuthManager.changePassword(
-      currentPassword = "currentPassword",
-      newPassword = "newPassword123",
-      serialNumber = "serialNumber",
-    )
+    val result =
+        AuthManager.changePassword(
+            currentPassword = "currentPassword",
+            newPassword = "newPassword123",
+            serialNumber = "serialNumber",
+        )
 
     assertThat(result).isFalse()
   }

@@ -131,7 +131,7 @@ class AuthResourceIT {
     Given {
       contentType(ContentType.JSON)
       header("Authorization", "Bearer $token")
-        body(ChangePasswordRequest(TEST_PASSWORD, newPassword, TEST_SERIAL_NUMBER))
+      body(ChangePasswordRequest(TEST_PASSWORD, newPassword, TEST_SERIAL_NUMBER))
     } When { post("/api/auth/change-password") } Then { statusCode(Response.Status.OK.statusCode) }
 
     Given {

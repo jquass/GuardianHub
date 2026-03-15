@@ -180,7 +180,7 @@ class PasswordManagerTest {
     every { ConfigManager.getRawConfigValue(Env.NPM_ADMIN_PASSWORD) } returns
         Result.success("currentPassword1!")
     every { DockerManager.execWithOutput(*anyVararg<String>()) } returns
-        Result.success("""{"error":"invalid credentials"}""")
+        Result.error("invalid credentials")
 
     val result = PasswordManager.updateNpmPassword(UpdatePasswordRequest("validPassword1!"))
 

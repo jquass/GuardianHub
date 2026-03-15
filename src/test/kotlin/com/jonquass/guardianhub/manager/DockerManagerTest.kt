@@ -185,6 +185,7 @@ class DockerManagerTest {
 
   @Test
   fun `recreateContainer should return error when up process exits with non-zero code and has output`() {
+    mockkConstructor(ProcessBuilder::class)
     val successProcess = mockk<Process> { every { waitFor() } returns 0 }
     val failProcess =
         mockk<Process> {
@@ -193,7 +194,6 @@ class DockerManagerTest {
           every { waitFor() } returns 1
         }
 
-    // stop -> success, rm -> success, up -> non-zero exit with output
     every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returnsMany
         listOf(
             mockk(relaxed = true) { every { start() } returns successProcess },
@@ -206,6 +206,7 @@ class DockerManagerTest {
 
   @Test
   fun `recreateContainer should return success when up process exits with code 0 and has output`() {
+    mockkConstructor(ProcessBuilder::class)
     val successProcess = mockk<Process> { every { waitFor() } returns 0 }
     val upSuccessProcess =
         mockk<Process> {

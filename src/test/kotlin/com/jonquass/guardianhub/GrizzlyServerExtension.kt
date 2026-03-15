@@ -2,6 +2,7 @@ package com.jonquass.guardianhub
 
 import com.jonquass.guardianhub.config.ServerFactory
 import com.jonquass.guardianhub.core.Result
+import com.jonquass.guardianhub.core.api.auth.LoginRequest
 import com.jonquass.guardianhub.core.config.Env
 import com.jonquass.guardianhub.core.getOrThrow
 import com.jonquass.guardianhub.manager.ConfigManager
@@ -45,7 +46,7 @@ class GrizzlyServerExtension :
     fun loginAndGetToken(password: String = TEST_PASSWORD): String {
       return Given {
         contentType(ContentType.JSON)
-        body("""{"password": "$password"}""")
+        body(LoginRequest(password = password))
       } When
           {
             post("/api/auth/login")

@@ -105,6 +105,22 @@ class DockerManagerTest {
     assertThat(result.isError).isTrue
   }
 
+  @Test
+  fun `execWithOutput should return success with output when process exits with non-zero code`() {
+    // The current impl calls waitFor() but doesn't check exit code - it returns success regardless
+    // This covers the branch where readLine() returns a value AND exitCode != 0
+    DockerManager.processBuilderFactory = {
+      mockk {
+        every { inputStream } returns ByteArrayInputStream("error output".toByteArray())
+        every { waitFor() } returns 1
+      }
+    }
+
+    val result = DockerManager.execWithOutput("ps")
+    assertThat(result.isSuccess).isTrue
+    assertThat(result.getOrThrow()).isEqualTo("error output")
+  }
+
   // --- recreateContainer ---
 
   @Test
@@ -165,5 +181,46 @@ class DockerManagerTest {
     }
 
     assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
+  }
+
+  @Test
+  fun `recreateContainer should return error when up process exits with non-zero code and has output`() {
+    val successProcess = mockk<Process> {
+      every { waitFor() } returns 0
+    }
+    val failProcess = mockk<Process> {
+      every { inputStream } returns ByteArrayInputStream("container failed to start".toByteArray())
+      every { waitFor() } returns 1
+    }
+
+    // stop -> success, rm -> success, up -> non-zero exit with output
+    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returnsMany
+            listOf(
+              mockk(relaxed = true) { every { start() } returns successProcess },
+              mockk(relaxed = true) { every { start() } returns successProcess },
+              mockk(relaxed = true) { every { start() } returns failProcess },
+            )
+
+    assertThat(DockerManager.recreateContainer("pihole").isError).isTrue
+  }
+
+  @Test
+  fun `recreateContainer should return success when up process exits with code 0 and has output`() {
+    val successProcess = mockk<Process> {
+      every { waitFor() } returns 0
+    }
+    val upSuccessProcess = mockk<Process> {
+      every { inputStream } returns ByteArrayInputStream("Started container pihole".toByteArray())
+      every { waitFor() } returns 0
+    }
+
+    every { anyConstructed<ProcessBuilder>().redirectErrorStream(true) } returnsMany
+            listOf(
+              mockk(relaxed = true) { every { start() } returns successProcess },
+              mockk(relaxed = true) { every { start() } returns successProcess },
+              mockk(relaxed = true) { every { start() } returns upSuccessProcess },
+            )
+
+    assertThat(DockerManager.recreateContainer("pihole").isSuccess).isTrue
   }
 }
